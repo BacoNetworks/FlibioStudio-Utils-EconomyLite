@@ -176,7 +176,7 @@ public class FileManager {
     public void saveFile(String fileName, ConfigurationNode root) {
         Sponge.getScheduler().createTaskBuilder().execute(r -> {
             File folder = new File("config/" + folderName);
-            File file = new File("config/" + folderName + fileName);
+            File file = new File("config/" + folderName + "/" + fileName);
             try {
                 folder.mkdirs();
                 file.createNewFile();
