@@ -174,18 +174,22 @@ public class FileManager {
      * @param root The contents of the file.
      */
     public void saveFile(String fileName, ConfigurationNode root) {
-        Sponge.getScheduler().createTaskBuilder().execute(r -> {
-            File folder = new File("config/" + folderName);
-            File file = new File("config/" + folderName + "/" + fileName);
-            try {
-                folder.mkdirs();
-                file.createNewFile();
-                ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(new File("config/" + folderName + fileName)).build();
-                manager.save(root);
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
-        }).async().submit(plugin);
+        Sponge.getScheduler()
+                .createTaskBuilder()
+                .execute(
+                        r -> {
+                            File folder = new File("config/" + folderName);
+                            File file = new File("config/" + folderName + "/" + fileName);
+                            try {
+                                folder.mkdirs();
+                                file.createNewFile();
+                                ConfigurationLoader<?> manager =
+                                        HoconConfigurationLoader.builder().setFile(new File("config/" + folderName + "/" + fileName)).build();
+                                manager.save(root);
+                            } catch (Exception e) {
+                                logger.error(e.getMessage());
+                            }
+                        }).async().submit(plugin);
     }
 
 }
