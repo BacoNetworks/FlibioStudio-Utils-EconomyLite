@@ -146,6 +146,29 @@ public class FileManager {
     }
 
     /**
+     * Checks if a configuration node exists.
+     * 
+     * @param fileName The name of the file. Must include the extension.
+     * @param path The path of the value. Supports sub-paths using a '.'
+     *        seperator.
+     * @return If the node exists or not.
+     */
+    public boolean nodeExists(String fileName, String path) {
+        try {
+            Optional<ConfigurationNode> oRoot = getFile(fileName);
+            if (oRoot.isPresent()) {
+                ConfigurationNode root = oRoot.get();
+                return root.getNode((Object[]) path.split("\\.")) != null;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Gets a file using the specified name. Generates a new file if one is not
      * already present.
      * 
