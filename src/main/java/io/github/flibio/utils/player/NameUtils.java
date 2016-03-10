@@ -65,6 +65,6 @@ public class NameUtils {
         } catch (InterruptedException | ExecutionException e) {
             return Optional.empty();
         }
-        return Optional.of(profile.getName());
+        return profile.getName();
     }
 }
