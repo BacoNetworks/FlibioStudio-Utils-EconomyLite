@@ -60,7 +60,7 @@ public class CommandLoader {
             for (BaseCommandExecutor<?> subCommand : subCommands) {
                 if (!c.getClass().isAnnotationPresent(Command.class))
                     continue;
-                spec = spec.child(subCommand.getCommandSpec(), c.getClass().getAnnotation(Command.class).aliases());
+                spec = spec.child(subCommand.getCommandSpec(), subCommand.getClass().getAnnotation(Command.class).aliases());
             }
             Sponge.getCommandManager().register(plugin, spec.build(), aliases);
         }

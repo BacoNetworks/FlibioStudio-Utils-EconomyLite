@@ -47,9 +47,9 @@ import org.spongepowered.api.text.format.TextColors;
 
 public abstract class BaseCommandExecutor<T extends CommandSource> implements CommandExecutor {
 
-    private boolean async = false;
+    public boolean async = false;
     private Class<T> type;
-    private Object plugin;
+    public Object plugin;
 
     @SuppressWarnings("unchecked")
     public BaseCommandExecutor() {

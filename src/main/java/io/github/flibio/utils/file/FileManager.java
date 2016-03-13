@@ -59,7 +59,7 @@ public class FileManager {
         if (plugin.getClass().isAnnotationPresent(Plugin.class)) {
             Plugin annotation = plugin.getClass().getAnnotation(Plugin.class);
             Logger logger = Sponge.getGame().getPluginManager().getPlugin(annotation.id()).get().getLogger();
-            return Optional.of(new FileManager(logger, annotation.id(), plugin));
+            return Optional.of(new FileManager(logger, annotation.name(), plugin));
         } else {
             return Optional.empty();
         }
