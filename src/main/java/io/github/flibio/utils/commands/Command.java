@@ -31,6 +31,12 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface AsyncCommand {
+public @interface Command {
 
+    /**
+     * Gets the command's aliases.
+     * 
+     * @return All of the command's aliases.
+     */
+    String[] aliases();
 }

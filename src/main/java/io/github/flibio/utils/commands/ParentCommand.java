@@ -31,6 +31,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface AsyncCommand {
-
+public @interface ParentCommand {
+    
+    Class<? extends BaseCommandExecutor<?>> parentCommand();
 }
