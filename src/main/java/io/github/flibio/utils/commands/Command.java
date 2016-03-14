@@ -39,4 +39,11 @@ public @interface Command {
      * @return All of the command's aliases.
      */
     String[] aliases();
+
+    /**
+     * Gets the command's permission.
+     * 
+     * @return The command's permission.
+     */
+    String permission() default "";
 }

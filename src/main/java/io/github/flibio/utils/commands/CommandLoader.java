@@ -25,6 +25,7 @@
 package io.github.flibio.utils.commands;
 
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.command.spec.CommandSpec.Builder;
 
 import java.util.ArrayList;
@@ -58,9 +59,9 @@ public class CommandLoader {
             Builder spec = c.getCommandSpecBuilder();
             List<BaseCommandExecutor<?>> subCommands = getSubCommands(c, cmds, plugin);
             for (BaseCommandExecutor<?> subCommand : subCommands) {
-                if (!c.getClass().isAnnotationPresent(Command.class))
-                    continue;
-                spec = spec.child(subCommand.getCommandSpec(), subCommand.getClass().getAnnotation(Command.class).aliases());
+                CommandSpec childSpec =
+                        subCommand.getCommandSpecBuilder().permission(subCommand.getClass().getAnnotation(Command.class).permission()).build();
+                spec = spec.child(childSpec, subCommand.getClass().getAnnotation(Command.class).aliases());
             }
             Sponge.getCommandManager().register(plugin, spec.build(), aliases);
         }
@@ -70,7 +71,7 @@ public class CommandLoader {
             Object plugin) {
         ArrayList<BaseCommandExecutor<?>> subCommands = new ArrayList<>();
         for (BaseCommandExecutor<?> command : commands) {
-            if (command.getClass().isAnnotationPresent(ParentCommand.class)) {
+            if (command.getClass().isAnnotationPresent(ParentCommand.class) && command.getClass().isAnnotationPresent(Command.class)) {
                 if (command.getClass().getAnnotation(ParentCommand.class).parentCommand().equals(parent.getClass())) {
                     // Check if the class is async
                     if (command.getClass().isAnnotationPresent(AsyncCommand.class)) {
