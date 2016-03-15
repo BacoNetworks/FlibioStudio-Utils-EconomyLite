@@ -84,6 +84,22 @@ public class MessageStorage {
 
     /**
      * Locates and deserializes a message. The message supports formatting using
+     * the ampersand symbol. Returns a red error message if a message could not
+     * be found.
+     * 
+     * @param key The key the message was stored with.
+     * @param search What the replacement will replace.
+     * @param replacement What to replace the search with.
+     * @return The deserialized message.
+     */
+    public Text getMessage(String key, String search, String replacement) {
+        HashMap<String, String> vars = new HashMap<>();
+        vars.put(search, replacement);
+        return getMessage(key, vars);
+    }
+
+    /**
+     * Locates and deserializes a message. The message supports formatting using
      * the ampersand symbol.
      * 
      * @param key The key the message was stored with.
