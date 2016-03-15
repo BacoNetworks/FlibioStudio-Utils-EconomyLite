@@ -1,5 +1,7 @@
 package io.github.flibio.utils.message;
 
+import ninja.leaping.configurate.ConfigurationNode;
+
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.serializer.TextSerializers;
@@ -29,14 +31,31 @@ public class MessageStorage {
     }
 
     /**
-     * Checks if all of the keys have a value present. If they do not, the value
-     * provided in the Map is set as the key's value.
+     * Checks if all of the message keys have a value present. If they do not,
+     * the value provided in the Map is set as the key's value.
      * 
      * @param defaultMessages The default messages map.
      */
     public void defaultMessages(Map<String, String> defaultMessages) {
         defaultMessages.entrySet().forEach(entry -> {
-            fileManager.setDefault("messages.conf", entry.getKey(), String.class, entry.getValue());
+            fileManager.setDefault("messages.conf", entry.getKey(), String.class, entry.getValue(), false);
+        });
+    }
+
+    /**
+     * Checks if all the message keys have a value present. The keys are loaded
+     * from the file provided. If the keys do not have a value, the value is set
+     * to the value found in the file.
+     * 
+     * @param defaultFile The file to load the keys and values from.
+     */
+    public void defaultMessages(ConfigurationNode defaultFile) {
+        defaultFile.getChildrenMap().keySet().forEach(raw -> {
+            if (raw instanceof String) {
+                String key = (String) raw;
+                String value = defaultFile.getNode(key).getString();
+                fileManager.setDefault("messages.conf", key, String.class, value, false);
+            }
         });
     }
 
@@ -51,7 +70,7 @@ public class MessageStorage {
      * @return The deserialized message.
      */
     public Text getMessage(String key, Map<String, String> variables) {
-        Optional<String> sOpt = fileManager.getValue("messages.conf", key, String.class);
+        Optional<String> sOpt = fileManager.getValue("messages.conf", key, String.class, false);
         if (sOpt.isPresent()) {
             String value = sOpt.get();
             for (Map.Entry<String, String> entry : variables.entrySet()) {

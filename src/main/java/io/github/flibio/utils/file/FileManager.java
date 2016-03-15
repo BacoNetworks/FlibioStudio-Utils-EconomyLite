@@ -71,23 +71,46 @@ public class FileManager {
      * 
      * @param fileName The name of the file. Must include the extension.
      * @param path The path of the default value. Supports sub-paths using a '.'
-     *        seperator.
+     *        seperator, only if subPath is set to true.
      * @param type The type of the default value.
      * @param value The default value.
+     * @param subPath If the path should split into sub-paths using the '.'
+     *        seperator.
      */
-    public <T> void setDefault(String fileName, String path, Class<T> type, T value) {
+    public <T> void setDefault(String fileName, String path, Class<T> type, T value, boolean subPath) {
         try {
             Optional<ConfigurationNode> oRoot = getFile(fileName);
             if (oRoot.isPresent()) {
                 ConfigurationNode root = oRoot.get();
-                if (root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)) == null) {
-                    root.getNode((Object[]) path.split("\\.")).setValue(TypeToken.of(type), value);
-                    saveFile(fileName, root);
+                if (subPath) {
+                    if (root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)) == null) {
+                        root.getNode((Object[]) path.split("\\.")).setValue(TypeToken.of(type), value);
+                        saveFile(fileName, root);
+                    }
+                } else {
+                    if (root.getNode(path).getValue(TypeToken.of(type)) == null) {
+                        root.getNode(path).setValue(TypeToken.of(type), value);
+                        saveFile(fileName, root);
+                    }
                 }
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
+    }
+
+    /**
+     * Sets a value in a file if one doesn't exit. Saves the the changed file to
+     * the disc. Defaults the subPath value to true.
+     * 
+     * @param fileName The name of the file. Must include the extension.
+     * @param path The path of the default value. Supports sub-paths using a '.'
+     *        seperator, only if subPath is set to true.
+     * @param type The type of the default value.
+     * @param value The default value.
+     */
+    public <T> void setDefault(String fileName, String path, Class<T> type, T value) {
+        setDefault(fileName, path, type, value, true);
     }
 
     /**
@@ -98,14 +121,20 @@ public class FileManager {
      *        seperator.
      * @param type The type of the value.
      * @param value The value.
+     * @param subPath If the path should split into sub-paths using the '.'
+     *        seperator.
      * @return If the value was successfully set or not.
      */
-    public <T> boolean setValue(String fileName, String path, Class<T> type, T value) {
+    public <T> boolean setValue(String fileName, String path, Class<T> type, T value, boolean subPath) {
         try {
             Optional<ConfigurationNode> oRoot = getFile(fileName);
             if (oRoot.isPresent()) {
                 ConfigurationNode root = oRoot.get();
-                root.getNode((Object[]) path.split("\\.")).setValue(TypeToken.of(type), value);
+                if (subPath) {
+                    root.getNode((Object[]) path.split("\\.")).setValue(TypeToken.of(type), value);
+                } else {
+                    root.getNode(path).setValue(TypeToken.of(type), value);
+                }
                 saveFile(fileName, root);
                 return true;
             } else {
@@ -118,23 +147,48 @@ public class FileManager {
     }
 
     /**
+     * Sets a value in a file. Saves the the changed file to the disc. Defaults
+     * the subPath value to true.
+     * 
+     * @param fileName The name of the file. Must include the extension.
+     * @param path The path of the value. Supports sub-paths using a '.'
+     *        seperator.
+     * @param type The type of the value.
+     * @param value The value.
+     * @return If the value was successfully set or not.
+     */
+    public <T> boolean setValue(String fileName, String path, Class<T> type, T value) {
+        return setValue(fileName, path, type, value, true);
+    }
+
+    /**
      * Gets a value from the specified file.
      * 
      * @param fileName The name of the file. Must include the extension.
      * @param path The path of the value. Supports sub-paths using a '.'
      *        seperator.
      * @param type The type of the value.
+     * @param subPath If the path should split into sub-paths using the '.'
+     *        seperator.
      * @return The value, if it was found.
      */
-    public <T> Optional<T> getValue(String fileName, String path, Class<T> type) {
+    public <T> Optional<T> getValue(String fileName, String path, Class<T> type, boolean subPath) {
         try {
             Optional<ConfigurationNode> oRoot = getFile(fileName);
             if (oRoot.isPresent()) {
                 ConfigurationNode root = oRoot.get();
-                if (root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)) != null) {
-                    return Optional.of(root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)));
+                if (subPath) {
+                    if (root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)) != null) {
+                        return Optional.of(root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)));
+                    } else {
+                        return Optional.empty();
+                    }
                 } else {
-                    return Optional.empty();
+                    if (root.getNode(path).getValue(TypeToken.of(type)) != null) {
+                        return Optional.of(root.getNode(path).getValue(TypeToken.of(type)));
+                    } else {
+                        return Optional.empty();
+                    }
                 }
             } else {
                 return Optional.empty();
@@ -146,19 +200,38 @@ public class FileManager {
     }
 
     /**
+     * Gets a value from the specified file. Defaults the subPath value to true.
+     * 
+     * @param fileName The name of the file. Must include the extension.
+     * @param path The path of the value. Supports sub-paths using a '.'
+     *        seperator.
+     * @param type The type of the value.
+     * @return The value, if it was found.
+     */
+    public <T> Optional<T> getValue(String fileName, String path, Class<T> type) {
+        return getValue(fileName, path, type, true);
+    }
+
+    /**
      * Checks if a configuration node exists.
      * 
      * @param fileName The name of the file. Must include the extension.
      * @param path The path of the value. Supports sub-paths using a '.'
      *        seperator.
+     * @param subPath If the path should split into sub-paths using the '.'
+     *        seperator.
      * @return If the node exists or not.
      */
-    public boolean nodeExists(String fileName, String path) {
+    public boolean nodeExists(String fileName, String path, boolean subPath) {
         try {
             Optional<ConfigurationNode> oRoot = getFile(fileName);
             if (oRoot.isPresent()) {
                 ConfigurationNode root = oRoot.get();
-                return root.getNode((Object[]) path.split("\\.")) != null;
+                if (subPath) {
+                    return root.getNode((Object[]) path.split("\\.")) != null;
+                } else {
+                    return root.getNode(path) != null;
+                }
             } else {
                 return false;
             }
@@ -166,6 +239,19 @@ public class FileManager {
             logger.error(e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Checks if a configuration node exists. Defaults the subPath value to
+     * true.
+     * 
+     * @param fileName The name of the file. Must include the extension.
+     * @param path The path of the value. Supports sub-paths using a '.'
+     *        seperator.
+     * @return If the node exists or not.
+     */
+    public boolean nodeExists(String fileName, String path) {
+        return nodeExists(fileName, path, true);
     }
 
     /**
@@ -180,6 +266,25 @@ public class FileManager {
         File file = new File("config/" + folderName + "/" + fileName);
         try {
             folder.mkdirs();
+            file.createNewFile();
+            ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(file).build();
+            ConfigurationNode root = manager.load();
+            return Optional.of(root);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Gets a resource file using the specified path.
+     * 
+     * @param filePath The path of the file. Must include the extension.
+     * @return The file, if no error has occurred.
+     */
+    public Optional<ConfigurationNode> getResourceFile(String filePath) {
+        File file = new File(plugin.getClass().getClassLoader().getResource(filePath).getFile());
+        try {
             file.createNewFile();
             ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(file).build();
             ConfigurationNode root = manager.load();
