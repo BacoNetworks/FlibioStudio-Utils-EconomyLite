@@ -84,7 +84,7 @@ public class MessageStorage {
 
     /**
      * Locates and deserializes a message. The message supports formatting using
-     * the '&' symbol.
+     * the ampersand symbol.
      * 
      * @param key The key the message was stored with.
      * @return The deserialized message.
