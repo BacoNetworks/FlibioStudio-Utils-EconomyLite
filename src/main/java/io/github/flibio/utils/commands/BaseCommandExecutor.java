@@ -42,14 +42,14 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.vehicle.minecart.CommandBlockMinecart;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.serializer.TextSerializers;
 
 public abstract class BaseCommandExecutor<T extends CommandSource> implements CommandExecutor {
 
     public boolean async = false;
     private Class<T> type;
     public Object plugin;
+    public String invalidSource;
 
     @SuppressWarnings("unchecked")
     public BaseCommandExecutor() {
@@ -102,34 +102,34 @@ public abstract class BaseCommandExecutor<T extends CommandSource> implements Co
 
     private boolean compareType(CommandSource src) {
         if (type.equals(CommandBlock.class) && !(src instanceof CommandBlock)) {
-            src.sendMessage(Text.of(TextColors.RED, "You must be a command block to run this command!"));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "command block")));
             return false;
         } else if (type.equals(CommandBlockMinecart.class) && !(src instanceof CommandBlockMinecart)) {
-            src.sendMessage(Text.of(TextColors.RED, "You must be a command block minecart to run this command!"));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "command block minecart")));
             return false;
         } else if (type.equals(CommandBlockSource.class) && !(src instanceof CommandBlockSource)) {
-            src.sendMessage(Text.of(TextColors.RED, "You must be a solid command block to run this command!"));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "solid command block")));
             return false;
         } else if (type.equals(ConsoleSource.class) && !(src instanceof ConsoleSource)) {
-            src.sendMessage(Text.of(TextColors.RED, "You must be a console to run this command!"));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "console")));
             return false;
         } else if (type.equals(LocatedSource.class) && !(src instanceof LocatedSource)) {
-            src.sendMessage(Text.of(TextColors.RED, "You must be a located source to run this command!"));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "located source")));
             return false;
         } else if (type.equals(Player.class) && !(src instanceof Player)) {
-            src.sendMessage(Text.of(TextColors.RED, "You must be a player to run this command!"));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "player")));
             return false;
         } else if (type.equals(ProxySource.class) && !(src instanceof ProxySource)) {
-            src.sendMessage(Text.of(TextColors.RED, "You must be a proxy source to run this command!"));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "proxy source")));
             return false;
         } else if (type.equals(RconSource.class) && !(src instanceof RconSource)) {
-            src.sendMessage(Text.of(TextColors.RED, "You must be an Rcon client to run this command!"));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "rcon client")));
             return false;
         } else if (type.equals(RemoteSource.class) && !(src instanceof RemoteSource)) {
-            src.sendMessage(Text.of(TextColors.RED, "You must be a remote source to run this command!"));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "remote source")));
             return false;
         } else if (type.equals(SignSource.class) && !(src instanceof SignSource)) {
-            src.sendMessage(Text.of(TextColors.RED, "You must be a sign source to run this command!"));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "sign source")));
             return false;
         } else {
             return true;

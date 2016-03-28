@@ -100,6 +100,60 @@ public class MessageStorage {
 
     /**
      * Locates and deserializes a message. The message supports formatting using
+     * the ampersand symbol. Returns a red error message if a message could not
+     * be found.
+     * 
+     * @param key The key the message was stored with.
+     * @param search What the replacement will replace.
+     * @param replacement What to replace the search with.
+     * @return The deserialized message.
+     */
+    public Text getMessage(String key, String search, String replacement) {
+        HashMap<String, Text> vars = new HashMap<>();
+        vars.put("{" + search + "}", Text.of(replacement));
+        return getMessage(key, vars);
+    }
+
+    /**
+     * Locates and deserializes a message. The message supports formatting using
+     * the ampersand symbol. Returns a red error message if a message could not
+     * be found.
+     * 
+     * @param key The key the message was stored with.
+     * @param search What the replacement will replace.
+     * @param replacement What to replace the search with.
+     * @param search2 What the second replacement will replace.
+     * @param replacement2 What to replace the second search with.
+     * @return The deserialized message.
+     */
+    public Text getMessage(String key, String search, Text replacement, String search2, Text replacement2) {
+        HashMap<String, Text> vars = new HashMap<>();
+        vars.put("{" + search + "}", replacement);
+        vars.put("{" + search2 + "}", replacement2);
+        return getMessage(key, vars);
+    }
+
+    /**
+     * Locates and deserializes a message. The message supports formatting using
+     * the ampersand symbol. Returns a red error message if a message could not
+     * be found.
+     * 
+     * @param key The key the message was stored with.
+     * @param search What the replacement will replace.
+     * @param replacement What to replace the search with.
+     * @param search2 What the second replacement will replace.
+     * @param replacement2 What to replace the second search with.
+     * @return The deserialized message.
+     */
+    public Text getMessage(String key, String search, String replacement, String search2, String replacement2) {
+        HashMap<String, Text> vars = new HashMap<>();
+        vars.put("{" + search + "}", Text.of(replacement));
+        vars.put("{" + search2 + "}", Text.of(replacement2));
+        return getMessage(key, vars);
+    }
+
+    /**
+     * Locates and deserializes a message. The message supports formatting using
      * the ampersand symbol.
      * 
      * @param key The key the message was stored with.

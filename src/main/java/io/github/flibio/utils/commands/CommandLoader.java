@@ -38,13 +38,21 @@ public class CommandLoader {
      * Registers all of the commands presented.
      * 
      * @param plugin An instance of the main plugin class.
+     * @param invalidSource The message that will be sent to a CommandSource if
+     *        they do not meet the required CommandSource type.
      * @param commands All of the commands that need to be registered.
      */
-    public static void registerCommands(Object plugin, BaseCommandExecutor<?>... commands) {
+    public static void registerCommands(Object plugin, String invalidSource, BaseCommandExecutor<?>... commands) {
         List<BaseCommandExecutor<?>> cmds = Arrays.asList(commands);
         for (BaseCommandExecutor<?> c : cmds) {
             if (c.getClass().isAnnotationPresent(ParentCommand.class) || !c.getClass().isAnnotationPresent(Command.class)) {
                 continue;
+            }
+            // Inject the invalid source message
+            try {
+                c.getClass().getField("invalidSource").set(c, invalidSource);
+            } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+                e.printStackTrace();
             }
             String[] aliases = c.getClass().getAnnotation(Command.class).aliases();
             // Check if the class is async
