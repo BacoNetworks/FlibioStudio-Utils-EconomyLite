@@ -69,12 +69,12 @@ public class MessageStorage {
      *        of the key will be replaced by its corresponding value.
      * @return The deserialized message.
      */
-    public Text getMessage(String key, Map<String, String> variables) {
+    public Text getMessage(String key, Map<String, Text> variables) {
         Optional<String> sOpt = fileManager.getValue("messages.conf", key, String.class, false);
         if (sOpt.isPresent()) {
             String value = sOpt.get();
-            for (Map.Entry<String, String> entry : variables.entrySet()) {
-                value = value.replaceAll(entry.getKey(), entry.getValue());
+            for (Map.Entry<String, Text> entry : variables.entrySet()) {
+                value = value.replaceAll(entry.getKey(), TextSerializers.FORMATTING_CODE.serialize(entry.getValue()));
             }
             return TextSerializers.FORMATTING_CODE.deserialize(value);
         } else {
@@ -92,8 +92,8 @@ public class MessageStorage {
      * @param replacement What to replace the search with.
      * @return The deserialized message.
      */
-    public Text getMessage(String key, String search, String replacement) {
-        HashMap<String, String> vars = new HashMap<>();
+    public Text getMessage(String key, String search, Text replacement) {
+        HashMap<String, Text> vars = new HashMap<>();
         vars.put(search, replacement);
         return getMessage(key, vars);
     }
