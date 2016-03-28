@@ -74,7 +74,7 @@ public class MessageStorage {
         if (sOpt.isPresent()) {
             String value = sOpt.get();
             for (Map.Entry<String, Text> entry : variables.entrySet()) {
-                value = value.replaceAll(entry.getKey(), TextSerializers.FORMATTING_CODE.serialize(entry.getValue()));
+                value = value.replaceAll("{" + entry.getKey() + "}", TextSerializers.FORMATTING_CODE.serialize(entry.getValue()));
             }
             return TextSerializers.FORMATTING_CODE.deserialize(value);
         } else {
@@ -94,7 +94,7 @@ public class MessageStorage {
      */
     public Text getMessage(String key, String search, Text replacement) {
         HashMap<String, Text> vars = new HashMap<>();
-        vars.put(search, replacement);
+        vars.put("{" + search + "}", replacement);
         return getMessage(key, vars);
     }
 
