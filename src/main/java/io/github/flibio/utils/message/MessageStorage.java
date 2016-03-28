@@ -1,6 +1,28 @@
+/*
+ * This file is part of Utils, licensed under the MIT License (MIT).
+ *
+ * Copyright (c) 2016 - 2016 Flibio
+ * Copyright (c) Contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package io.github.flibio.utils.message;
-
-import ninja.leaping.configurate.ConfigurationNode;
 
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
@@ -9,8 +31,10 @@ import org.spongepowered.api.text.serializer.TextSerializers;
 import io.github.flibio.utils.file.FileManager;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ResourceBundle;
 
 public class MessageStorage {
 
@@ -47,15 +71,13 @@ public class MessageStorage {
      * from the file provided. If the keys do not have a value, the value is set
      * to the value found in the file.
      * 
-     * @param defaultFile The file to load the keys and values from.
+     * @param containingPackage The package the resources are found in
      */
-    public void defaultMessages(ConfigurationNode defaultFile) {
-        defaultFile.getChildrenMap().keySet().forEach(raw -> {
-            if (raw instanceof String) {
-                String key = (String) raw;
-                String value = defaultFile.getNode(key).getString();
-                fileManager.setDefault("messages.conf", key, String.class, value, false);
-            }
+    public void defaultMessages(String containingPackage) {
+        ResourceBundle rb = ResourceBundle.getBundle(containingPackage, Locale.getDefault());
+        rb.keySet().forEach(key -> {
+            String value = rb.getString(key);
+            fileManager.setDefault("messages.conf", key, String.class, value, false);
         });
     }
 
