@@ -37,29 +37,27 @@ import com.google.common.reflect.TypeToken;
 import java.io.File;
 import java.util.Optional;
 
-public class FileManager {
+public class ConfigManager {
 
     private Logger logger;
     private String folderName;
-    private Object plugin;
 
-    protected FileManager(Logger logger, String folderName, Object plugin) {
+    protected ConfigManager(Logger logger, String folderName) {
         this.logger = logger;
         this.folderName = folderName;
-        this.plugin = plugin;
     }
 
     /**
-     * Creates a new FileManager instance.
+     * Creates a new ConfigManager instance.
      * 
      * @param plugin An instance of the main plugin class.
-     * @return The new FileManager instance, if the plugin class is valid.
+     * @return The new ConfigManager instance, if the plugin class is valid.
      */
-    public static Optional<FileManager> createInstance(Object plugin) {
+    public static Optional<ConfigManager> createInstance(Object plugin) {
         if (plugin.getClass().isAnnotationPresent(Plugin.class)) {
             Plugin annotation = plugin.getClass().getAnnotation(Plugin.class);
             Logger logger = Sponge.getGame().getPluginManager().getPlugin(annotation.id()).get().getLogger();
-            return Optional.of(new FileManager(logger, annotation.name(), plugin));
+            return Optional.of(new ConfigManager(logger, annotation.name().toLowerCase().replaceAll(" ", "_")));
         } else {
             return Optional.empty();
         }
@@ -277,43 +275,22 @@ public class FileManager {
     }
 
     /**
-     * Gets a resource file using the specified path.
-     * 
-     * @param filePath The path of the file. Must include the extension.
-     * @return The file, if no error has occurred.
-     */
-    public Optional<ConfigurationNode> getResourceFile(String filePath) {
-        File file = new File(plugin.getClass().getClassLoader().getResource(filePath).getFile());
-        try {
-            file.createNewFile();
-            ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(file).build();
-            ConfigurationNode root = manager.load();
-            return Optional.of(root);
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * Saves a file to the disc. Runs in an async thread.
+     * Saves a file to the disc.
      * 
      * @param fileName The name of the file. Must include the extension.
      * @param root The contents of the file.
      */
-    public void saveFile(String fileName, ConfigurationNode root) {
-        Sponge.getScheduler().createTaskBuilder().execute(r -> {
-            File folder = new File("config/" + folderName);
-            File file = new File("config/" + folderName + "/" + fileName);
-            try {
-                folder.mkdirs();
-                file.createNewFile();
-                ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(file).build();
-                manager.save(root);
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
-        }).async().submit(plugin);
+    private void saveFile(String fileName, ConfigurationNode root) {
+        File folder = new File("config/" + folderName);
+        File file = new File("config/" + folderName + "/" + fileName);
+        try {
+            folder.mkdirs();
+            file.createNewFile();
+            ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(file).build();
+            manager.save(root);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
     }
 
 }

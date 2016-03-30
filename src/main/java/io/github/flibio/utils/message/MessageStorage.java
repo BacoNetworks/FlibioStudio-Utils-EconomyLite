@@ -28,7 +28,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
-import io.github.flibio.utils.file.FileManager;
+import io.github.flibio.utils.file.ConfigManager;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -38,10 +38,10 @@ import java.util.ResourceBundle;
 
 public class MessageStorage {
 
-    private FileManager fileManager;
+    private ConfigManager configManager;
 
     protected MessageStorage(Object plugin) {
-        this.fileManager = FileManager.createInstance(plugin).get();
+        this.configManager = ConfigManager.createInstance(plugin).get();
     }
 
     /**
@@ -62,7 +62,7 @@ public class MessageStorage {
      */
     public void defaultMessages(Map<String, String> defaultMessages) {
         defaultMessages.entrySet().forEach(entry -> {
-            fileManager.setDefault("messages.conf", entry.getKey(), String.class, entry.getValue(), false);
+            configManager.setDefault("messages.conf", entry.getKey(), String.class, entry.getValue(), false);
         });
     }
 
@@ -77,7 +77,7 @@ public class MessageStorage {
         ResourceBundle rb = ResourceBundle.getBundle(containingPackage, Locale.getDefault());
         rb.keySet().forEach(key -> {
             String value = rb.getString(key);
-            fileManager.setDefault("messages.conf", key, String.class, value, false);
+            configManager.setDefault("messages.conf", key, String.class, value, false);
         });
     }
 
@@ -92,11 +92,11 @@ public class MessageStorage {
      * @return The deserialized message.
      */
     public Text getMessage(String key, Map<String, Text> variables) {
-        Optional<String> sOpt = fileManager.getValue("messages.conf", key, String.class, false);
+        Optional<String> sOpt = configManager.getValue("messages.conf", key, String.class, false);
         if (sOpt.isPresent()) {
             String value = sOpt.get();
             for (Map.Entry<String, Text> entry : variables.entrySet()) {
-                value = value.replaceAll("{" + entry.getKey() + "}", TextSerializers.FORMATTING_CODE.serialize(entry.getValue()));
+                value = value.replaceAll("\\{" + entry.getKey() + "\\}", TextSerializers.FORMATTING_CODE.serialize(entry.getValue()));
             }
             return TextSerializers.FORMATTING_CODE.deserialize(value);
         } else {
@@ -116,7 +116,7 @@ public class MessageStorage {
      */
     public Text getMessage(String key, String search, Text replacement) {
         HashMap<String, Text> vars = new HashMap<>();
-        vars.put("{" + search + "}", replacement);
+        vars.put(search, replacement);
         return getMessage(key, vars);
     }
 
@@ -132,7 +132,7 @@ public class MessageStorage {
      */
     public Text getMessage(String key, String search, String replacement) {
         HashMap<String, Text> vars = new HashMap<>();
-        vars.put("{" + search + "}", Text.of(replacement));
+        vars.put(search, Text.of(replacement));
         return getMessage(key, vars);
     }
 
@@ -150,8 +150,8 @@ public class MessageStorage {
      */
     public Text getMessage(String key, String search, Text replacement, String search2, Text replacement2) {
         HashMap<String, Text> vars = new HashMap<>();
-        vars.put("{" + search + "}", replacement);
-        vars.put("{" + search2 + "}", replacement2);
+        vars.put(search, replacement);
+        vars.put(search2, replacement2);
         return getMessage(key, vars);
     }
 
@@ -169,8 +169,8 @@ public class MessageStorage {
      */
     public Text getMessage(String key, String search, String replacement, String search2, String replacement2) {
         HashMap<String, Text> vars = new HashMap<>();
-        vars.put("{" + search + "}", Text.of(replacement));
-        vars.put("{" + search2 + "}", Text.of(replacement2));
+        vars.put(search, Text.of(replacement));
+        vars.put(search2, Text.of(replacement2));
         return getMessage(key, vars);
     }
 
