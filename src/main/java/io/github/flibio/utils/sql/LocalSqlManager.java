@@ -1,3 +1,27 @@
+/*
+ * This file is part of Utils, licensed under the MIT License (MIT).
+ *
+ * Copyright (c) 2016 - 2016 Flibio
+ * Copyright (c) Contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package io.github.flibio.utils.sql;
 
 import org.slf4j.Logger;
@@ -8,6 +32,7 @@ import org.spongepowered.api.service.sql.SqlService;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Optional;
 
 import javax.sql.DataSource;
@@ -22,7 +47,7 @@ public class LocalSqlManager {
 
     protected LocalSqlManager(Logger logger, String folderName, String file) {
         this.logger = logger;
-        this.path = "config/" + folderName + "/" + file;
+        this.path = "./config/" + folderName + "/" + file;
         this.sql = Sponge.getServiceManager().provide(SqlService.class).get();
     }
 
@@ -48,14 +73,18 @@ public class LocalSqlManager {
             DataSource source = sql.getDataSource("jdbc:h2:" + path);
             con = source.getConnection();
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage());
         }
     }
 
-    private void closeConnection() {
+    private void reconnect() {
         try {
-            con.close();
+            if (con != null && !con.isClosed())
+                con.close();
+            openConnection();
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage());
         }
     }
@@ -71,19 +100,14 @@ public class LocalSqlManager {
      */
     public boolean executeUpdate(String sql, String... vars) {
         try {
-            openConnection();
+            reconnect();
             PreparedStatement ps = con.prepareStatement(sql);
             for (int i = 0; i < vars.length; i++) {
                 ps.setString(i + 1, vars[i]);
             }
-            if (ps.executeUpdate() > 0) {
-                closeConnection();
-                return true;
-            } else {
-                closeConnection();
-                return false;
-            }
+            return (ps.executeUpdate() > 0);
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage());
             return false;
         }
@@ -99,15 +123,14 @@ public class LocalSqlManager {
      */
     public Optional<ResultSet> executeQuery(String sql, String... vars) {
         try {
-            openConnection();
+            reconnect();
             PreparedStatement ps = con.prepareStatement(sql);
             for (int i = 0; i < vars.length; i++) {
                 ps.setString(i + 1, vars[i]);
             }
-            ResultSet rs = ps.executeQuery();
-            closeConnection();
-            return Optional.of(rs);
+            return Optional.of(ps.executeQuery());
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage());
             return Optional.empty();
         }
