@@ -46,4 +46,5 @@ public @interface Command {
      * @return The command's permission.
      */
     String permission() default "";
+
 }

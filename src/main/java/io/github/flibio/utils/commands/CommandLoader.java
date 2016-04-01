@@ -48,52 +48,54 @@ public class CommandLoader {
             if (c.getClass().isAnnotationPresent(ParentCommand.class) || !c.getClass().isAnnotationPresent(Command.class)) {
                 continue;
             }
-            // Inject the invalid source message
-            try {
-                c.getClass().getField("invalidSource").set(c, invalidSource);
-            } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
-                e.printStackTrace();
-            }
-            String[] aliases = c.getClass().getAnnotation(Command.class).aliases();
-            // Check if the class is async
-            if (c.getClass().isAnnotationPresent(AsyncCommand.class)) {
-                try {
-                    c.getClass().getField("async").set(c, true);
-                    c.getClass().getField("plugin").set(c, plugin);
-                } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
-                    e.printStackTrace();
-                }
-            }
+            Command commandAnnotation = c.getClass().getAnnotation(Command.class);
+            // Inject any variables
+            c = parseCommand(c, invalidSource, plugin);
+            // Load command details
+            String[] aliases = commandAnnotation.aliases();
+            String permission = commandAnnotation.permission();
+            // Get the command spec
             Builder spec = c.getCommandSpecBuilder();
-            List<BaseCommandExecutor<?>> subCommands = getSubCommands(c, cmds, plugin);
+            spec.permission(permission);
+            // Load the subcommands
+            List<BaseCommandExecutor<?>> subCommands = getSubCommands(c, cmds, plugin, invalidSource);
             for (BaseCommandExecutor<?> subCommand : subCommands) {
-                CommandSpec childSpec =
-                        subCommand.getCommandSpecBuilder().permission(subCommand.getClass().getAnnotation(Command.class).permission()).build();
-                spec = spec.child(childSpec, subCommand.getClass().getAnnotation(Command.class).aliases());
+                Command subCmdAnn = subCommand.getClass().getAnnotation(Command.class);
+                CommandSpec childSpec = subCommand.getCommandSpecBuilder().permission(subCmdAnn.permission()).build();
+                spec = spec.child(childSpec, subCmdAnn.aliases());
             }
             Sponge.getCommandManager().register(plugin, spec.build(), aliases);
         }
     }
 
     private static List<BaseCommandExecutor<?>> getSubCommands(BaseCommandExecutor<?> parent, List<? extends BaseCommandExecutor<?>> commands,
-            Object plugin) {
+            Object plugin, String invalidSource) {
         ArrayList<BaseCommandExecutor<?>> subCommands = new ArrayList<>();
         for (BaseCommandExecutor<?> command : commands) {
             if (command.getClass().isAnnotationPresent(ParentCommand.class) && command.getClass().isAnnotationPresent(Command.class)) {
                 if (command.getClass().getAnnotation(ParentCommand.class).parentCommand().equals(parent.getClass())) {
-                    // Check if the class is async
-                    if (command.getClass().isAnnotationPresent(AsyncCommand.class)) {
-                        try {
-                            command.getClass().getField("async").set(command, true);
-                            command.getClass().getField("plugin").set(command, plugin);
-                        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    subCommands.add(command);
+                    subCommands.add(parseCommand(command, invalidSource, plugin));
                 }
             }
         }
         return subCommands;
+    }
+
+    private static BaseCommandExecutor<?> parseCommand(BaseCommandExecutor<?> cmd, String invalidSource, Object plugin) {
+        try {
+            cmd.getClass().getField("invalidSource").set(cmd, invalidSource);
+            if (cmd.getClass().isAnnotationPresent(AsyncCommand.class)) {
+                try {
+                    cmd.getClass().getField("async").set(cmd, true);
+                    cmd.getClass().getField("plugin").set(cmd, plugin);
+                } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+                    e.printStackTrace();
+                }
+            }
+            return cmd;
+        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
