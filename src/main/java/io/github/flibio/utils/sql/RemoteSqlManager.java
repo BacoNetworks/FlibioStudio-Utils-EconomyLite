@@ -30,27 +30,32 @@ import org.spongepowered.api.plugin.Plugin;
 
 import java.util.Optional;
 
-public class LocalSqlManager extends SqlManager {
+public class RemoteSqlManager extends SqlManager {
 
-    protected LocalSqlManager(Logger logger, String folderName, String file) {
-        super(logger, "jdbc:h2:./config/" + folderName + "/" + file);
+    protected RemoteSqlManager(Logger logger, String source) {
+        super(logger, source);
     }
 
     /**
-     * Creates a new LocalSqlManager instance. Uses H2 database.
+     * Creates a new RemoteSqlManager instance. Uses MySQL databse.
      * 
      * @param plugin An instance of the main plugin class.
-     * @param file The file associated with the data manager
-     * @return The new LocalSqlManager instance, if the plugin class is valid.
+     * @param hostname The hostname of the MySQL server.
+     * @param port The port of the MySQL server.
+     * @param database The database on the MySQL server.
+     * @param username The username for the MySQL server.
+     * @param password The password for the MySQL server.
+     * @return The new RemoteSqlManager instance, if the plugin class is valid.
      */
-    public static Optional<LocalSqlManager> createInstance(Object plugin, String file) {
+    public static Optional<RemoteSqlManager> createInstance(Object plugin, String hostname, String port, String database, String username,
+            String password) {
         if (plugin.getClass().isAnnotationPresent(Plugin.class)) {
             Plugin annotation = plugin.getClass().getAnnotation(Plugin.class);
             Logger logger = Sponge.getGame().getPluginManager().getPlugin(annotation.id()).get().getLogger();
-            return Optional.of(new LocalSqlManager(logger, annotation.name().toLowerCase().replaceAll(" ", "_"), file));
+            return Optional.of(new RemoteSqlManager(logger, "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?user=" + username
+                    + "&password=" + password));
         } else {
             return Optional.empty();
         }
     }
-
 }
