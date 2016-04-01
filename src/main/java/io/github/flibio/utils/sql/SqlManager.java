@@ -7,6 +7,8 @@ import org.spongepowered.api.service.sql.SqlService;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import javax.sql.DataSource;
@@ -134,6 +136,34 @@ public class SqlManager {
             logger.error(e.getMessage());
             return Optional.empty();
         }
+    }
+
+    /**
+     * Queries the database and retrieves a list of data.
+     * 
+     * @param columnName The column whose data will be added to the list.
+     * @param type The type of data to retrieve.
+     * @param sql The sql to run.
+     * @param vars The variables to replace in sql. Replaced in chronological
+     *        order.
+     * @return The list of data.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> List<T> queryTypeList(String columnName, Class<T> type, String sql, String... vars) {
+        ArrayList<T> list = new ArrayList<>();
+        try {
+            Optional<ResultSet> rOpt = executeQuery(sql, vars);
+            if (rOpt.isPresent()) {
+                ResultSet rs = rOpt.get();
+                while (rs.next()) {
+                    Object raw = rs.getObject(columnName);
+                    list.add((T) raw);
+                }
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return list;
     }
 
     /**
