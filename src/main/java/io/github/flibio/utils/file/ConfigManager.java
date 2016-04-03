@@ -112,6 +112,30 @@ public class ConfigManager {
     }
 
     /**
+     * Deletes a value from a file,
+     * 
+     * @param fileName The file to delete from.
+     * @param path The path to delete.
+     * @return If the deletion was successful or not.
+     */
+    public boolean deleteValue(String fileName, String path) {
+        try {
+            Optional<ConfigurationNode> oRoot = getFile(fileName);
+            if (oRoot.isPresent()) {
+                ConfigurationNode root = oRoot.get();
+                root.getNode(path).setValue(null);
+                saveFile(fileName, root);
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Sets a value in a file. Saves the the changed file to the disc.
      * 
      * @param fileName The name of the file. Must include the extension.
