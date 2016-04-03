@@ -102,34 +102,34 @@ public abstract class BaseCommandExecutor<T extends CommandSource> implements Co
 
     private boolean compareType(CommandSource src) {
         if (type.equals(CommandBlock.class) && !(src instanceof CommandBlock)) {
-            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "command block")));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("\\{sourcetype\\}", "command block")));
             return false;
         } else if (type.equals(CommandBlockMinecart.class) && !(src instanceof CommandBlockMinecart)) {
-            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "command block minecart")));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("\\{sourcetype\\}", "command block minecart")));
             return false;
         } else if (type.equals(CommandBlockSource.class) && !(src instanceof CommandBlockSource)) {
-            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "solid command block")));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("\\{sourcetype\\}", "solid command block")));
             return false;
         } else if (type.equals(ConsoleSource.class) && !(src instanceof ConsoleSource)) {
-            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "console")));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("\\{sourcetype\\}", "console")));
             return false;
         } else if (type.equals(LocatedSource.class) && !(src instanceof LocatedSource)) {
-            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "located source")));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("\\{sourcetype\\}", "located source")));
             return false;
         } else if (type.equals(Player.class) && !(src instanceof Player)) {
-            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "player")));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("\\{sourcetype\\}", "player")));
             return false;
         } else if (type.equals(ProxySource.class) && !(src instanceof ProxySource)) {
-            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "proxy source")));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("\\{sourcetype\\}", "proxy source")));
             return false;
         } else if (type.equals(RconSource.class) && !(src instanceof RconSource)) {
-            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "rcon client")));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("\\{sourcetype\\}", "rcon client")));
             return false;
         } else if (type.equals(RemoteSource.class) && !(src instanceof RemoteSource)) {
-            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "remote source")));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("\\{sourcetype\\}", "remote source")));
             return false;
         } else if (type.equals(SignSource.class) && !(src instanceof SignSource)) {
-            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("{sourcetype}", "sign source")));
+            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("\\{sourcetype\\}", "sign source")));
             return false;
         } else {
             return true;
