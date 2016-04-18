@@ -57,7 +57,7 @@ public class ConfigManager {
         if (plugin.getClass().isAnnotationPresent(Plugin.class)) {
             Plugin annotation = plugin.getClass().getAnnotation(Plugin.class);
             Logger logger = Sponge.getGame().getPluginManager().getPlugin(annotation.id()).get().getLogger();
-            return Optional.of(new ConfigManager(logger, annotation.name().toLowerCase().replaceAll(" ", "_")));
+            return Optional.of(new ConfigManager(logger, annotation.name().toLowerCase().replaceAll(" ", "")));
         } else {
             return Optional.empty();
         }
