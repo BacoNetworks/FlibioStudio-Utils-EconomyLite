@@ -46,6 +46,10 @@ subprojects {
         archives sourcesJar
         archives javadocJar
     }
+    
+    jar {
+         baseName 'utils-'+project.name
+    }
 }
 
 project(':message') { 
