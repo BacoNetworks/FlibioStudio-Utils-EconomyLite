@@ -6,56 +6,73 @@ plugins {
 
 group 'io.github.flibio'
 
-defaultTasks 'clean', 'licenseFormat', 'commands:build', 'file:build', 'message:build', 'player:build', 'sql:build'
+defaultTasks 'clean', 'licenseFormat', 'build', 'commandsJar'
 
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'maven'
-    
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-
-    repositories {
-        mavenCentral()
-        jcenter()
-        maven {
-            name 'Sponge API repo'
-            url 'http://repo.spongepowered.org/maven'
-        }
-        maven {
-            name = 'minecrell-releases'
-            url = 'http://repo.minecrell.net/releases'
-        }
+repositories {
+    mavenCentral()
+    jcenter()
+    maven {
+        name 'Sponge API repo'
+        url 'http://repo.spongepowered.org/maven'
     }
-    
-    dependencies {
-        compile "org.spongepowered:spongeapi:4.1.0-SNAPSHOT"
-    }
-    
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
-        from sourceSets.main.allSource
-    }
-    
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
-        from javadoc.destinationDir
-    }
-    
-    artifacts {
-        archives sourcesJar
-        archives javadocJar
-    }
-    
-    jar {
-         baseName 'utils-'+project.name
+    maven {
+        name = 'minecrell-releases'
+        url = 'http://repo.minecrell.net/releases'
     }
 }
 
-project(':message') { 
-    dependencies {
-        compile project(':file')
-    }
+dependencies {
+    compile "org.spongepowered:spongeapi:4.1.0-SNAPSHOT"
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+task commandsJar(type: Jar) {
+    baseName = "commands"
+    
+    from(sourceSets.main.output) {  
+        include "io/github/flibio/utils/commands/**" 
+    }  
+}
+
+task fileJar(type: Jar) {
+    baseName = "file"
+    
+    from(sourceSets.main.output) {  
+        include "io/github/flibio/utils/file/**" 
+    }  
+}
+
+task messageJar(type: Jar) {
+    baseName = "message"
+    
+    from(sourceSets.main.output) {  
+        include "io/github/flibio/utils/message/**" 
+    }  
+}
+
+task playerJar(type: Jar) {
+    baseName = "player"
+    
+    from(sourceSets.main.output) {  
+        include "io/github/flibio/utils/player/**" 
+    }  
+}
+
+task sqlJar(type: Jar) {
+    baseName = "sql"
+    
+    from(sourceSets.main.output) {  
+        include "io/github/flibio/utils/sql/**" 
+    }  
 }
 
 license {
@@ -69,6 +86,16 @@ license {
     
     header = rootProject.file('HEADER.txt')
     include '**/*.java'
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+    archives commandsJar
+    archives fileJar
+    archives messageJar
+    archives playerJar
+    archives sqlJar
 }
 
 task wrapper(type: Wrapper) {
