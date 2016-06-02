@@ -1,1 +1,1 @@
-include ':commands', ':file', ':message', ':player', ':sql'
+include 'commands', 'file', 'message', 'player', 'sql'
