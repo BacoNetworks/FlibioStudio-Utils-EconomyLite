@@ -6,7 +6,7 @@ plugins {
 
 group 'io.github.flibio'
 
-defaultTasks 'clean', 'licenseFormat', 'build', 'commandsJar'
+defaultTasks 'clean', 'licenseFormat', 'build'
 
 repositories {
     mavenCentral()
@@ -37,6 +37,7 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 
 task commandsJar(type: Jar) {
     baseName = "commands"
+    classifier = "commands"
     
     from(sourceSets.main.output) {  
         include "io/github/flibio/utils/commands/**" 
@@ -45,6 +46,7 @@ task commandsJar(type: Jar) {
 
 task fileJar(type: Jar) {
     baseName = "file"
+    classifier = "file"
     
     from(sourceSets.main.output) {  
         include "io/github/flibio/utils/file/**" 
@@ -53,6 +55,7 @@ task fileJar(type: Jar) {
 
 task messageJar(type: Jar) {
     baseName = "message"
+    classifier = "message"
     
     from(sourceSets.main.output) {  
         include "io/github/flibio/utils/message/**" 
@@ -61,6 +64,7 @@ task messageJar(type: Jar) {
 
 task playerJar(type: Jar) {
     baseName = "player"
+    classifier = "player"
     
     from(sourceSets.main.output) {  
         include "io/github/flibio/utils/player/**" 
@@ -69,6 +73,7 @@ task playerJar(type: Jar) {
 
 task sqlJar(type: Jar) {
     baseName = "sql"
+    classifier = "sql"
     
     from(sourceSets.main.output) {  
         include "io/github/flibio/utils/sql/**" 
