@@ -300,6 +300,25 @@ public class ConfigManager {
     }
 
     /**
+     * Gets a file from the disk. No parsing is done to the file.
+     * 
+     * @param fileName The name of the file. Must include the extension.
+     * @return The file, if no error has occurred.
+     */
+    public Optional<File> getRawFile(String fileName) {
+        File folder = new File("config/" + folderName);
+        File file = new File("config/" + folderName + "/" + fileName);
+        try {
+            folder.mkdirs();
+            file.createNewFile();
+            return Optional.of(file);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Saves a file to the disc.
      * 
      * @param fileName The name of the file. Must include the extension.
