@@ -59,7 +59,8 @@ public class SqlManager {
      */
     public boolean testConnection() {
         try {
-            sql.getDataSource(datasource);
+            PreparedStatement ps = con.prepareStatement("SELECT 1");
+            ps.executeQuery();
             return true;
         } catch (Exception e) {
             return false;
@@ -78,9 +79,11 @@ public class SqlManager {
 
     private void reconnect() {
         try {
-            if (con != null && !con.isClosed())
-                con.close();
-            openConnection();
+            if (!testConnection()) {
+                if (con != null && !con.isClosed())
+                    con.close();
+                openConnection();
+            }
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(e.getMessage());
