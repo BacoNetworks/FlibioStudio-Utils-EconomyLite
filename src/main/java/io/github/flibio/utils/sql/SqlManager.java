@@ -52,6 +52,15 @@ public class SqlManager {
         this.sql = Sponge.getServiceManager().provide(SqlService.class).get();
     }
 
+    public boolean initialTestConnection() {
+        try {
+            sql.getDataSource(datasource);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     /**
      * Tests if the connection to the database if functional.
      * 
