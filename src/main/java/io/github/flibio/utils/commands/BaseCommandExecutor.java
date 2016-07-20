@@ -33,7 +33,6 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.source.CommandBlockSource;
 import org.spongepowered.api.command.source.ConsoleSource;
-import org.spongepowered.api.command.source.LocatedSource;
 import org.spongepowered.api.command.source.ProxySource;
 import org.spongepowered.api.command.source.RconSource;
 import org.spongepowered.api.command.source.RemoteSource;
@@ -113,9 +112,6 @@ public abstract class BaseCommandExecutor<T extends CommandSource> implements Co
             return false;
         } else if (type.equals(ConsoleSource.class) && !(src instanceof ConsoleSource)) {
             src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("\\{sourcetype\\}", "console")));
-            return false;
-        } else if (type.equals(LocatedSource.class) && !(src instanceof LocatedSource)) {
-            src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("\\{sourcetype\\}", "located source")));
             return false;
         } else if (type.equals(Player.class) && !(src instanceof Player)) {
             src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(invalidSource.replaceAll("\\{sourcetype\\}", "player")));
