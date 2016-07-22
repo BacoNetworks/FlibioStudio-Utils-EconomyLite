@@ -34,7 +34,7 @@ import java.util.Optional;
 public class LocalSqlManager extends SqlManager {
 
     protected LocalSqlManager(Logger logger, String folderName, String file) {
-        super(logger, "jdbc:h2:./config/" + folderName + "/" + file);
+        super(logger, "jdbc:h2:./config/" + folderName + "/" + file + ";AUTO_SERVER=TRUE");
     }
 
     /**
