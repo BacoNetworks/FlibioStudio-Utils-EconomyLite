@@ -324,7 +324,7 @@ public class ConfigManager {
      * @param fileName The name of the file. Must include the extension.
      * @param root The contents of the file.
      */
-    private void saveFile(String fileName, ConfigurationNode root) {
+    public void saveFile(String fileName, ConfigurationNode root) {
         File folder = new File("config/" + folderName);
         File file = new File("config/" + folderName + "/" + fileName);
         try {
