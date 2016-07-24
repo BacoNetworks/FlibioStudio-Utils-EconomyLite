@@ -253,7 +253,7 @@ public class ConfigManager {
                 if (subPath) {
                     return root.getNode((Object[]) path.split("\\.")) != null;
                 } else {
-                    return root.getNode(path) != null;
+                    return !root.getNode(path).isVirtual();
                 }
             } else {
                 return false;
