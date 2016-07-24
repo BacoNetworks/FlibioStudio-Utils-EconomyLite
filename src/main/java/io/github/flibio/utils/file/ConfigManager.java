@@ -251,7 +251,7 @@ public class ConfigManager {
             if (oRoot.isPresent()) {
                 ConfigurationNode root = oRoot.get();
                 if (subPath) {
-                    return root.getNode((Object[]) path.split("\\.")) != null;
+                    return !root.getNode((Object[]) path.split("\\.")).isVirtual();
                 } else {
                     return !root.getNode(path).isVirtual();
                 }
