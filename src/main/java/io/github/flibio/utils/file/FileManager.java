@@ -37,7 +37,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 public class FileManager {
 
@@ -46,27 +45,12 @@ public class FileManager {
     private String folderName;
 
     // Cache Variables
-    private boolean writingCache = false;
     private Map<String, ConfigurationNode> cache = new HashMap<>();
-    private Map<String, ConfigurationNode> onDisk = new HashMap<>();
 
     protected FileManager(Logger logger, String folderName, Object plugin) {
         this.logger = logger;
         this.folderName = folderName;
         this.plugin = plugin;
-
-        Sponge.getScheduler().createTaskBuilder().execute(t -> {
-            if (!writingCache) {
-                cache.entrySet().forEach(entry -> {
-                    String fileName = entry.getKey();
-                    ConfigurationNode node = entry.getValue();
-                    if (!onDisk.get(fileName).equals(node)) {
-                        onDisk.put(fileName, node);
-                        saveFileToDisk(fileName, node);
-                    }
-                });
-            }
-        }).async().interval(1, TimeUnit.SECONDS);
     }
 
     /**
@@ -326,6 +310,25 @@ public class FileManager {
     }
 
     /**
+     * Reloads a file from the disk.
+     * 
+     * @param fileName The file to reload.
+     */
+    public void reloadFile(String fileName) {
+        try {
+            File folder = new File("config/" + folderName);
+            File file = new File("config/" + folderName + "/" + fileName);
+            folder.mkdirs();
+            file.createNewFile();
+            ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(file).build();
+            ConfigurationNode root = manager.load();
+            cache.put(fileName, root);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+    }
+
+    /**
      * Gets a file from the disk. No parsing is done to the file.
      * 
      * @param fileName The name of the file. Must include the extension.
@@ -351,9 +354,8 @@ public class FileManager {
      * @param root The contents of the file.
      */
     public void saveFile(String fileName, ConfigurationNode root) {
-        writingCache = true;
         cache.put(fileName, root);
-        writingCache = false;
+        saveFileToDisk(fileName, root);
     }
 
     private void saveFileToDisk(String fileName, ConfigurationNode root) {
