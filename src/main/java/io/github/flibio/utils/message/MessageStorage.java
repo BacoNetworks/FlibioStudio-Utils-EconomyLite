@@ -25,7 +25,7 @@
 
 package io.github.flibio.utils.message;
 
-import io.github.flibio.utils.file.ConfigManager;
+import io.github.flibio.utils.file.FileManager;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.serializer.TextSerializers;
@@ -38,10 +38,10 @@ import java.util.ResourceBundle;
 
 public class MessageStorage {
 
-    private ConfigManager configManager;
+    private FileManager configManager;
 
     protected MessageStorage(Object plugin) {
-        this.configManager = ConfigManager.createInstance(plugin).get();
+        this.configManager = FileManager.createInstance(plugin);
     }
 
     /**
