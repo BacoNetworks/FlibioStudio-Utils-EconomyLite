@@ -128,7 +128,7 @@ public class FileManager {
             Optional<ConfigurationNode> oRoot = getFile(fileName);
             if (oRoot.isPresent()) {
                 ConfigurationNode root = oRoot.get();
-                root.getNode(path).setValue(null);
+                root.getNode((Object[]) path.split("\\.")).setValue(null);
                 saveFile(fileName, root);
                 return true;
             } else {
