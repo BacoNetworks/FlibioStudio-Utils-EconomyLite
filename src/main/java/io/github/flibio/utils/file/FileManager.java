@@ -34,23 +34,38 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.Plugin;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Iterator;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FileManager {
 
     private Logger logger;
-    private Object plugin;
     private String folderName;
 
-    // Cache Variables
-    private Map<String, ConfigurationNode> cache = new HashMap<>();
+    private ConcurrentHashMap<String, ConfigurationNode> cache = new ConcurrentHashMap<>();
+    private CopyOnWriteArrayList<String> saveQue = new CopyOnWriteArrayList<>();
+    private CopyOnWriteArrayList<String> loadQue = new CopyOnWriteArrayList<>();
 
     protected FileManager(Logger logger, String folderName, Object plugin) {
         this.logger = logger;
         this.folderName = folderName;
-        this.plugin = plugin;
+
+        Sponge.getScheduler().createTaskBuilder().execute(t -> {
+            Iterator<String> saves = saveQue.iterator();
+            while (saves.hasNext()) {
+                String file = saves.next();
+                saveFileToDisk(file, cache.get(file));
+            }
+            saveQue.clear();
+            Iterator<String> loads = loadQue.iterator();
+            while (loads.hasNext()) {
+                String file = loads.next();
+                loadFileFromDisk(file);
+            }
+            loadQue.clear();
+        }).async().intervalTicks(1).submit(plugin);
     }
 
     /**
@@ -315,17 +330,7 @@ public class FileManager {
      * @param fileName The file to reload.
      */
     public void reloadFile(String fileName) {
-        try {
-            File folder = new File("config/" + folderName);
-            File file = new File("config/" + folderName + "/" + fileName);
-            folder.mkdirs();
-            file.createNewFile();
-            ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(file).build();
-            ConfigurationNode root = manager.load();
-            cache.put(fileName, root);
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
+        loadQue.add(fileName);
     }
 
     /**
@@ -355,21 +360,33 @@ public class FileManager {
      */
     public void saveFile(String fileName, ConfigurationNode root) {
         cache.put(fileName, root);
-        saveFileToDisk(fileName, root);
+        saveQue.add(fileName);
     }
 
     private void saveFileToDisk(String fileName, ConfigurationNode root) {
-        Sponge.getScheduler().createTaskBuilder().execute(t -> {
+        File folder = new File("config/" + folderName);
+        File file = new File("config/" + folderName + "/" + fileName);
+        try {
+            folder.mkdirs();
+            file.createNewFile();
+            ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(file).build();
+            manager.save(root);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+    }
+
+    private void loadFileFromDisk(String fileName) {
+        try {
             File folder = new File("config/" + folderName);
             File file = new File("config/" + folderName + "/" + fileName);
-            try {
-                folder.mkdirs();
-                file.createNewFile();
-                ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(file).build();
-                manager.save(root);
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
-        }).async().submit(plugin);
+            folder.mkdirs();
+            file.createNewFile();
+            ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(file).build();
+            ConfigurationNode root = manager.load();
+            cache.put(fileName, root);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
     }
 }
