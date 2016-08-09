@@ -34,10 +34,8 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.Plugin;
 
 import java.io.File;
-import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FileManager {
 
@@ -45,27 +43,10 @@ public class FileManager {
     private String folderName;
 
     private ConcurrentHashMap<String, ConfigurationNode> cache = new ConcurrentHashMap<>();
-    private CopyOnWriteArrayList<String> saveQue = new CopyOnWriteArrayList<>();
-    private CopyOnWriteArrayList<String> loadQue = new CopyOnWriteArrayList<>();
 
-    protected FileManager(Logger logger, String folderName, Object plugin) {
+    protected FileManager(Logger logger, String folderName) {
         this.logger = logger;
         this.folderName = folderName;
-
-        Sponge.getScheduler().createTaskBuilder().execute(t -> {
-            Iterator<String> saves = saveQue.iterator();
-            while (saves.hasNext()) {
-                String file = saves.next();
-                saveFileToDisk(file, cache.get(file));
-            }
-            saveQue.clear();
-            Iterator<String> loads = loadQue.iterator();
-            while (loads.hasNext()) {
-                String file = loads.next();
-                loadFileFromDisk(file);
-            }
-            loadQue.clear();
-        }).async().intervalTicks(1).submit(plugin);
     }
 
     /**
@@ -78,7 +59,7 @@ public class FileManager {
         if (plugin.getClass().isAnnotationPresent(Plugin.class)) {
             Plugin annotation = plugin.getClass().getAnnotation(Plugin.class);
             Logger logger = Sponge.getGame().getPluginManager().getPlugin(annotation.id()).get().getLogger();
-            return new FileManager(logger, annotation.name().toLowerCase().replaceAll(" ", ""), plugin);
+            return new FileManager(logger, annotation.name().toLowerCase().replaceAll(" ", ""));
         }
         throw new InvalidPluginException(plugin + " could not be resolved to a plugin class!");
     }
@@ -308,15 +289,8 @@ public class FileManager {
             if (cache.containsKey(fileName)) {
                 return Optional.of(cache.get(fileName));
             } else {
-                // Load the file from the disk
-                File folder = new File("config/" + folderName);
-                File file = new File("config/" + folderName + "/" + fileName);
-                folder.mkdirs();
-                file.createNewFile();
-                ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(file).build();
-                ConfigurationNode root = manager.load();
-                cache.put(fileName, root);
-                return Optional.of(root);
+                loadFileFromDisk(fileName);
+                return Optional.of(cache.get(fileName));
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -330,7 +304,7 @@ public class FileManager {
      * @param fileName The file to reload.
      */
     public void reloadFile(String fileName) {
-        loadQue.add(fileName);
+        loadFileFromDisk(fileName);
     }
 
     /**
@@ -360,7 +334,7 @@ public class FileManager {
      */
     public void saveFile(String fileName, ConfigurationNode root) {
         cache.put(fileName, root);
-        saveQue.add(fileName);
+        saveFileToDisk(fileName, root);
     }
 
     private void saveFileToDisk(String fileName, ConfigurationNode root) {
