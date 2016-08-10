@@ -38,10 +38,10 @@ import java.util.ResourceBundle;
 
 public class MessageStorage {
 
-    private FileManager configManager;
+    private FileManager fileManager;
 
     protected MessageStorage(Object plugin) {
-        this.configManager = FileManager.createInstance(plugin);
+        this.fileManager = FileManager.createInstance(plugin);
     }
 
     /**
@@ -55,6 +55,13 @@ public class MessageStorage {
     }
 
     /**
+     * Forces a reload of the messages.
+     */
+    public void reloadMessages() {
+        fileManager.reloadFile("messages.conf");
+    }
+
+    /**
      * Checks if all of the message keys have a value present. If they do not,
      * the value provided in the Map is set as the key's value.
      * 
@@ -62,7 +69,7 @@ public class MessageStorage {
      */
     public void defaultMessages(Map<String, String> defaultMessages) {
         defaultMessages.entrySet().forEach(entry -> {
-            configManager.setDefault("messages.conf", entry.getKey(), String.class, entry.getValue(), false);
+            fileManager.setDefault("messages.conf", entry.getKey(), String.class, entry.getValue(), false);
         });
     }
 
@@ -77,7 +84,7 @@ public class MessageStorage {
         ResourceBundle rb = ResourceBundle.getBundle(containingPackage, Locale.getDefault());
         rb.keySet().forEach(key -> {
             String value = rb.getString(key);
-            configManager.setDefault("messages.conf", key, String.class, value, false);
+            fileManager.setDefault("messages.conf", key, String.class, value, false);
         });
     }
 
@@ -92,7 +99,7 @@ public class MessageStorage {
      * @return The deserialized message.
      */
     public Text getMessage(String key, Map<String, Text> variables) {
-        Optional<String> sOpt = configManager.getValue("messages.conf", key, String.class, false);
+        Optional<String> sOpt = fileManager.getValue("messages.conf", key, String.class, false);
         if (sOpt.isPresent()) {
             String value = sOpt.get();
             for (Map.Entry<String, Text> entry : variables.entrySet()) {
@@ -100,7 +107,7 @@ public class MessageStorage {
             }
             return TextSerializers.FORMATTING_CODE.deserialize(value);
         } else {
-            return Text.of(TextColors.RED, "error");
+            return Text.of(TextColors.RED, "Error finding message!");
         }
     }
 
