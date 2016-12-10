@@ -34,7 +34,7 @@ import java.util.Optional;
 public class LocalSqlManager extends SqlManager {
 
     protected LocalSqlManager(Logger logger, String folderName, String file) {
-        super(logger, "jdbc:h2:./config/" + folderName + "/" + file + ";AUTO_SERVER=TRUE");
+        super(logger, "jdbc:h2:" + appendSlash(folderName) + file + ";AUTO_SERVER=TRUE");
     }
 
     /**
@@ -48,10 +48,35 @@ public class LocalSqlManager extends SqlManager {
         if (plugin.getClass().isAnnotationPresent(Plugin.class)) {
             Plugin annotation = plugin.getClass().getAnnotation(Plugin.class);
             Logger logger = Sponge.getGame().getPluginManager().getPlugin(annotation.id()).get().getLogger();
-            return Optional.of(new LocalSqlManager(logger, annotation.name().toLowerCase().replaceAll(" ", "_"), file));
+            return Optional.of(new LocalSqlManager(logger, "./config/" + annotation.name().toLowerCase().replaceAll(" ", "_"), file));
         } else {
             return Optional.empty();
         }
     }
 
+    /**
+     * Creates a new LocalSqlManager instance. Uses H2 database.
+     * 
+     * @param plugin An instance of the main plugin class.
+     * @param file The file associated with the data manager.
+     * @param folder The folder to use.
+     * @return The new LocalSqlManager instance, if the plugin class is valid.
+     */
+    public static Optional<LocalSqlManager> createInstance(Object plugin, String file, String folder) {
+        if (plugin.getClass().isAnnotationPresent(Plugin.class)) {
+            Plugin annotation = plugin.getClass().getAnnotation(Plugin.class);
+            Logger logger = Sponge.getGame().getPluginManager().getPlugin(annotation.id()).get().getLogger();
+            return Optional.of(new LocalSqlManager(logger, folder, file));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private static String appendSlash(String path) {
+        // Append a slash if necessary
+        if (!path.substring(path.length() - 1).equalsIgnoreCase("/")) {
+            return path + "/";
+        }
+        return path;
+    }
 }
