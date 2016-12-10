@@ -59,7 +59,23 @@ public class FileManager {
         if (plugin.getClass().isAnnotationPresent(Plugin.class)) {
             Plugin annotation = plugin.getClass().getAnnotation(Plugin.class);
             Logger logger = Sponge.getGame().getPluginManager().getPlugin(annotation.id()).get().getLogger();
-            return new FileManager(logger, annotation.name().toLowerCase().replaceAll(" ", ""));
+            return new FileManager(logger, "config/" + annotation.name().toLowerCase().replaceAll(" ", ""));
+        }
+        throw new InvalidPluginException(plugin + " could not be resolved to a plugin class!");
+    }
+
+    /**
+     * Creates a new FileManager instance.
+     * 
+     * @param plugin An instance of the main plugin class.
+     * @param configDir The directory of the config
+     * @return The new FileManager instance.
+     */
+    public static FileManager createInstance(Object plugin, String configDir) {
+        if (plugin.getClass().isAnnotationPresent(Plugin.class)) {
+            Plugin annotation = plugin.getClass().getAnnotation(Plugin.class);
+            Logger logger = Sponge.getGame().getPluginManager().getPlugin(annotation.id()).get().getLogger();
+            return new FileManager(logger, configDir);
         }
         throw new InvalidPluginException(plugin + " could not be resolved to a plugin class!");
     }
@@ -314,8 +330,8 @@ public class FileManager {
      * @return The file, if no error has occurred.
      */
     public Optional<File> getRawFile(String fileName) {
-        File folder = new File("config/" + folderName);
-        File file = new File("config/" + folderName + "/" + fileName);
+        File folder = new File(folderName);
+        File file = new File(folderName + "/" + fileName);
         try {
             folder.mkdirs();
             file.createNewFile();
@@ -338,8 +354,8 @@ public class FileManager {
     }
 
     private void saveFileToDisk(String fileName, ConfigurationNode root) {
-        File folder = new File("config/" + folderName);
-        File file = new File("config/" + folderName + "/" + fileName);
+        File folder = new File(folderName);
+        File file = new File(folderName + "/" + fileName);
         try {
             folder.mkdirs();
             file.createNewFile();
@@ -352,8 +368,8 @@ public class FileManager {
 
     private void loadFileFromDisk(String fileName) {
         try {
-            File folder = new File("config/" + folderName);
-            File file = new File("config/" + folderName + "/" + fileName);
+            File folder = new File(folderName);
+            File file = new File(folderName + "/" + fileName);
             folder.mkdirs();
             file.createNewFile();
             ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(file).build();
