@@ -40,18 +40,29 @@ public class MessageStorage {
 
     private FileManager fileManager;
 
-    protected MessageStorage(Object plugin) {
-        this.fileManager = FileManager.createInstance(plugin);
+    protected MessageStorage(Object plugin, String folderName) {
+        this.fileManager = FileManager.createInstance(plugin, folderName);
     }
 
     /**
      * Creates a new MessageStorage instance.
-     * 
+     *
      * @param plugin An instance of the plugin.
      * @return A new MessageStorage instance.
      */
     public static MessageStorage createInstance(Object plugin) {
-        return new MessageStorage(plugin);
+        return new MessageStorage(plugin, "config");
+    }
+
+    /**
+     * Creates a new MessageStorage instance.
+     *
+     * @param plugin An instance of the plugin.
+     * @param folderName The name of the folder to use.
+     * @return A new MessageStorage instance.
+     */
+    public static MessageStorage createInstance(Object plugin, String folderName) {
+        return new MessageStorage(plugin, folderName);
     }
 
     /**
