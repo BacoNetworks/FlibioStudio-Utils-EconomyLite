@@ -88,7 +88,7 @@ public class SqlManager {
 
     private void reconnect() {
         try {
-            if (!testConnection()) {
+            if (!testConnection() || con == null) {
                 if (con != null && !con.isClosed())
                     con.close();
                 openConnection();
