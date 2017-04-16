@@ -1,7 +1,7 @@
 /*
  * This file is part of Utils, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016 - 2016 FlibioStudio
+ * Copyright (c) 2016 - 2017 FlibioStudio
  * Copyright (c) Contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

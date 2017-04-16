@@ -23,29 +23,14 @@
  * THE SOFTWARE.
  */
 
-package io.github.flibio.utils.commands;
+package io.github.flibio.utils.file;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+public class FileIOException extends RuntimeException {
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Command {
+    private static final long serialVersionUID = 5347194630985626500L;
 
-    /**
-     * Gets the command's aliases.
-     * 
-     * @return All of the command's aliases.
-     */
-    String[] aliases();
-
-    /**
-     * Gets the command's permission.
-     * 
-     * @return The command's permission.
-     */
-    String permission() default "";
+    public FileIOException(String message) {
+        super(message);
+    }
 
 }

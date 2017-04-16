@@ -1,7 +1,7 @@
 /*
  * This file is part of Utils, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016 - 2016 FlibioStudio
+ * Copyright (c) 2016 - 2017 FlibioStudio
  * Copyright (c) Contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -94,19 +94,16 @@ public class FileManager {
      */
     public <T> void setDefault(String fileName, String path, Class<T> type, T value, boolean subPath) {
         try {
-            Optional<ConfigurationNode> oRoot = getFile(fileName);
-            if (oRoot.isPresent()) {
-                ConfigurationNode root = oRoot.get();
-                if (subPath) {
-                    if (root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)) == null) {
-                        root.getNode((Object[]) path.split("\\.")).setValue(TypeToken.of(type), value);
-                        saveFile(fileName, root);
-                    }
-                } else {
-                    if (root.getNode(path).getValue(TypeToken.of(type)) == null) {
-                        root.getNode(path).setValue(TypeToken.of(type), value);
-                        saveFile(fileName, root);
-                    }
+            ConfigurationNode root = getFile(fileName);
+            if (subPath) {
+                if (root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)) == null) {
+                    root.getNode((Object[]) path.split("\\.")).setValue(TypeToken.of(type), value);
+                    saveFile(fileName, root);
+                }
+            } else {
+                if (root.getNode(path).getValue(TypeToken.of(type)) == null) {
+                    root.getNode(path).setValue(TypeToken.of(type), value);
+                    saveFile(fileName, root);
                 }
             }
         } catch (Exception e) {
@@ -137,15 +134,10 @@ public class FileManager {
      */
     public boolean deleteValue(String fileName, String path) {
         try {
-            Optional<ConfigurationNode> oRoot = getFile(fileName);
-            if (oRoot.isPresent()) {
-                ConfigurationNode root = oRoot.get();
-                root.getNode((Object[]) path.split("\\.")).setValue(null);
-                saveFile(fileName, root);
-                return true;
-            } else {
-                return false;
-            }
+            ConfigurationNode root = getFile(fileName);
+            root.getNode((Object[]) path.split("\\.")).setValue(null);
+            saveFile(fileName, root);
+            return true;
         } catch (Exception e) {
             logger.error(e.getMessage());
             return false;
@@ -166,19 +158,14 @@ public class FileManager {
      */
     public <T> boolean setValue(String fileName, String path, Class<T> type, T value, boolean subPath) {
         try {
-            Optional<ConfigurationNode> oRoot = getFile(fileName);
-            if (oRoot.isPresent()) {
-                ConfigurationNode root = oRoot.get();
-                if (subPath) {
-                    root.getNode((Object[]) path.split("\\.")).setValue(TypeToken.of(type), value);
-                } else {
-                    root.getNode(path).setValue(TypeToken.of(type), value);
-                }
-                saveFile(fileName, root);
-                return true;
+            ConfigurationNode root = getFile(fileName);
+            if (subPath) {
+                root.getNode((Object[]) path.split("\\.")).setValue(TypeToken.of(type), value);
             } else {
-                return false;
+                root.getNode(path).setValue(TypeToken.of(type), value);
             }
+            saveFile(fileName, root);
+            return true;
         } catch (Exception e) {
             logger.error(e.getMessage());
             return false;
@@ -213,24 +200,19 @@ public class FileManager {
      */
     public <T> Optional<T> getValue(String fileName, String path, Class<T> type, boolean subPath) {
         try {
-            Optional<ConfigurationNode> oRoot = getFile(fileName);
-            if (oRoot.isPresent()) {
-                ConfigurationNode root = oRoot.get();
-                if (subPath) {
-                    if (root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)) != null) {
-                        return Optional.of(root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)));
-                    } else {
-                        return Optional.empty();
-                    }
+            ConfigurationNode root = getFile(fileName);
+            if (subPath) {
+                if (root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)) != null) {
+                    return Optional.of(root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)));
                 } else {
-                    if (root.getNode(path).getValue(TypeToken.of(type)) != null) {
-                        return Optional.of(root.getNode(path).getValue(TypeToken.of(type)));
-                    } else {
-                        return Optional.empty();
-                    }
+                    return Optional.empty();
                 }
             } else {
-                return Optional.empty();
+                if (root.getNode(path).getValue(TypeToken.of(type)) != null) {
+                    return Optional.of(root.getNode(path).getValue(TypeToken.of(type)));
+                } else {
+                    return Optional.empty();
+                }
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -263,16 +245,11 @@ public class FileManager {
      */
     public boolean nodeExists(String fileName, String path, boolean subPath) {
         try {
-            Optional<ConfigurationNode> oRoot = getFile(fileName);
-            if (oRoot.isPresent()) {
-                ConfigurationNode root = oRoot.get();
-                if (subPath) {
-                    return !root.getNode((Object[]) path.split("\\.")).isVirtual();
-                } else {
-                    return !root.getNode(path).isVirtual();
-                }
+            ConfigurationNode root = getFile(fileName);
+            if (subPath) {
+                return !root.getNode((Object[]) path.split("\\.")).isVirtual();
             } else {
-                return false;
+                return !root.getNode(path).isVirtual();
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -300,17 +277,17 @@ public class FileManager {
      * @param fileName The name of the file. Must include the extension.
      * @return The file, if no error has occurred.
      */
-    public Optional<ConfigurationNode> getFile(String fileName) {
+    public ConfigurationNode getFile(String fileName) {
         try {
             if (cache.containsKey(fileName)) {
-                return Optional.of(cache.get(fileName));
+                return cache.get(fileName);
             } else {
                 loadFileFromDisk(fileName);
-                return Optional.of(cache.get(fileName));
+                return cache.get(fileName);
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return Optional.empty();
+            throw new FileIOException("Failed to load " + fileName + "!");
         }
     }
 
