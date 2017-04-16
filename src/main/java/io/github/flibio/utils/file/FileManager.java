@@ -330,7 +330,7 @@ public class FileManager {
         saveFileToDisk(fileName, root);
     }
 
-    private void saveFileToDisk(String fileName, ConfigurationNode root) {
+    public void saveFileToDisk(String fileName, ConfigurationNode root) {
         File folder = new File(folderName);
         File file = new File(folderName + "/" + fileName);
         try {
