@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.spongepowered:spongeapi:5.0.0-SNAPSHOT"
+    compile "org.spongepowered:spongeapi:6.0.0-SNAPSHOT"
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
@@ -42,6 +42,15 @@ task commandsJar(type: Jar) {
     from(sourceSets.main.output) {  
         include "io/github/flibio/utils/commands/**" 
     }  
+}
+
+task configJar(type: Jar) {
+    baseName = "config"
+    classifier = "config"
+
+    from(sourceSets.main.output) {
+        include "io/github/flibio/utils/config/**"
+    }
 }
 
 task fileJar(type: Jar) {
@@ -97,6 +106,7 @@ artifacts {
     archives sourcesJar
     archives javadocJar
     archives commandsJar
+    archives configJar
     archives fileJar
     archives messageJar
     archives playerJar
