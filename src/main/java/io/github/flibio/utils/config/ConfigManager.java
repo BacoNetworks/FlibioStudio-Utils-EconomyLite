@@ -80,6 +80,19 @@ public class ConfigManager {
         }
     }
 
+    public <T> T getValue(Class<T> type, String... nodes) {
+        CommentedConfigurationNode node = this.node.getNode((Object[]) nodes);
+        if (node.isVirtual()) {
+            return null;
+        }
+        try {
+            return node.getValue(TypeToken.of(type));
+        } catch (Exception e) {
+            logger.error("Failed to map object: " + e.getMessage());
+            return null;
+        }
+    }
+
     public void save() {
         try {
             loader.save(node);
