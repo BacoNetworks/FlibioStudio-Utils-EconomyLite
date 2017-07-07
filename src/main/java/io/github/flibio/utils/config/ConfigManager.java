@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class ConfigManager {
 
@@ -40,9 +41,11 @@ public class ConfigManager {
     private HoconConfigurationLoader loader;
     private CommentedConfigurationNode node;
 
-    private ConfigManager(Path file, Logger logger, String version) {
+    private ConfigManager(Path folder, String file, Logger logger, String version) {
         this.logger = logger;
-        configFile = file.toFile();
+        // Make the folder directory
+        folder.toFile().mkdirs();
+        configFile = Paths.get(folder.toString(), file).toFile();
         // Make sure the file exists
         if (!configFile.exists()) {
             try {
@@ -62,8 +65,8 @@ public class ConfigManager {
         node.setComment(version);
     }
 
-    public static ConfigManager create(Path file, Logger logger, String version) {
-        return new ConfigManager(file, logger, version);
+    public static ConfigManager create(Path folder, String file, Logger logger, String version) {
+        return new ConfigManager(folder, file, logger, version);
     }
 
     public <T> void setDefault(String comment, Class<T> type, T value, String... nodes) {
