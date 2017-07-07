@@ -25,181 +25,72 @@
 
 package io.github.flibio.utils.message;
 
-import io.github.flibio.utils.file.FileManager;
+import org.slf4j.Logger;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
-import java.util.HashMap;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.Properties;
 import java.util.ResourceBundle;
 
 public class MessageStorage {
 
-    private FileManager fileManager;
+    private File file;
+    private Properties props;
 
-    protected MessageStorage(Object plugin, String folderName) {
-        this.fileManager = FileManager.createInstance(plugin, folderName);
-    }
-
-    /**
-     * Creates a new MessageStorage instance.
-     *
-     * @param plugin An instance of the plugin.
-     * @return A new MessageStorage instance.
-     */
-    public static MessageStorage createInstance(Object plugin) {
-        return new MessageStorage(plugin, "config");
-    }
-
-    /**
-     * Creates a new MessageStorage instance.
-     *
-     * @param plugin An instance of the plugin.
-     * @param folderName The name of the folder to use.
-     * @return A new MessageStorage instance.
-     */
-    public static MessageStorage createInstance(Object plugin, String folderName) {
-        return new MessageStorage(plugin, folderName);
-    }
-
-    /**
-     * Forces a reload of the messages.
-     */
-    public void reloadMessages() {
-        fileManager.reloadFile("messages.conf");
-    }
-
-    /**
-     * Checks if all of the message keys have a value present. If they do not,
-     * the value provided in the Map is set as the key's value.
-     * 
-     * @param defaultMessages The default messages map.
-     */
-    public void defaultMessages(Map<String, String> defaultMessages) {
-        defaultMessages.entrySet().forEach(entry -> {
-            fileManager.setDefault("messages.conf", entry.getKey(), String.class, entry.getValue(), false);
-        });
-    }
-
-    /**
-     * Checks if all the message keys have a value present. The keys are loaded
-     * from the file provided. If the keys do not have a value, the value is set
-     * to the value found in the file.
-     * 
-     * @param containingPackage The package the resources are found in
-     */
-    public void defaultMessages(String containingPackage) {
-        ResourceBundle rb = ResourceBundle.getBundle(containingPackage, Locale.getDefault());
-        rb.keySet().forEach(key -> {
-            String value = rb.getString(key);
-            fileManager.setDefault("messages.conf", key, String.class, value, false);
-        });
-    }
-
-    /**
-     * Locates and deserializes a message. The message supports formatting using
-     * the ampersand symbol. Returns a red error message if a message could not
-     * be found.
-     * 
-     * @param key The key the message was stored with.
-     * @param variables The variables to replace in the message. Every instance
-     *        of the key will be replaced by its corresponding value.
-     * @return The deserialized message.
-     */
-    public Text getMessage(String key, Map<String, Text> variables) {
-        Optional<String> sOpt = fileManager.getValue("messages.conf", key, String.class, false);
-        if (sOpt.isPresent()) {
-            String value = sOpt.get();
-            for (Map.Entry<String, Text> entry : variables.entrySet()) {
-                value = value.replaceAll("\\{" + entry.getKey() + "\\}", TextSerializers.FORMATTING_CODE.serialize(entry.getValue()));
+    private MessageStorage(Path folder, String bundle, Logger logger) {
+        // Create directory if it doesn't exist
+        folder.toFile().mkdirs();
+        // Setup file
+        file = Paths.get(folder.toString(), bundle + ".properties").toFile();
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                logger.error("Failed to create message file: " + e.getMessage());
             }
-            return TextSerializers.FORMATTING_CODE.deserialize(value);
-        } else {
-            return Text.of(TextColors.RED, "Error finding message!");
+        }
+        // Load the file
+        props = new Properties();
+        try {
+            FileInputStream stream = new FileInputStream(file);
+            props.load(stream);
+            stream.close();
+        } catch (Exception e) {
+            logger.error("Error loading message file: " + e.getMessage());
+        }
+        // Load the message bundle and check default values
+        ResourceBundle rb = ResourceBundle.getBundle(bundle, Locale.getDefault());
+        rb.keySet().forEach(key -> {
+            props.putIfAbsent(key, rb.getString(key));
+        });
+        // Save the messages file
+        try {
+            FileOutputStream stream = new FileOutputStream(file);
+            props.store(stream, "HELLO");
+            stream.close();
+        } catch (Exception e) {
+            logger.error("Error saving message file: " + e.getMessage());
         }
     }
 
-    /**
-     * Locates and deserializes a message. The message supports formatting using
-     * the ampersand symbol. Returns a red error message if a message could not
-     * be found.
-     * 
-     * @param key The key the message was stored with.
-     * @param search What the replacement will replace.
-     * @param replacement What to replace the search with.
-     * @return The deserialized message.
-     */
-    public Text getMessage(String key, String search, Text replacement) {
-        HashMap<String, Text> vars = new HashMap<>();
-        vars.put(search, replacement);
-        return getMessage(key, vars);
+    public MessageStorage create(Path folder, String bundle, Logger logger) {
+        return new MessageStorage(folder, bundle, logger);
     }
 
-    /**
-     * Locates and deserializes a message. The message supports formatting using
-     * the ampersand symbol. Returns a red error message if a message could not
-     * be found.
-     * 
-     * @param key The key the message was stored with.
-     * @param search What the replacement will replace.
-     * @param replacement What to replace the search with.
-     * @return The deserialized message.
-     */
-    public Text getMessage(String key, String search, String replacement) {
-        HashMap<String, Text> vars = new HashMap<>();
-        vars.put(search, Text.of(replacement));
-        return getMessage(key, vars);
-    }
-
-    /**
-     * Locates and deserializes a message. The message supports formatting using
-     * the ampersand symbol. Returns a red error message if a message could not
-     * be found.
-     * 
-     * @param key The key the message was stored with.
-     * @param search What the replacement will replace.
-     * @param replacement What to replace the search with.
-     * @param search2 What the second replacement will replace.
-     * @param replacement2 What to replace the second search with.
-     * @return The deserialized message.
-     */
-    public Text getMessage(String key, String search, Text replacement, String search2, Text replacement2) {
-        HashMap<String, Text> vars = new HashMap<>();
-        vars.put(search, replacement);
-        vars.put(search2, replacement2);
-        return getMessage(key, vars);
-    }
-
-    /**
-     * Locates and deserializes a message. The message supports formatting using
-     * the ampersand symbol. Returns a red error message if a message could not
-     * be found.
-     * 
-     * @param key The key the message was stored with.
-     * @param search What the replacement will replace.
-     * @param replacement What to replace the search with.
-     * @param search2 What the second replacement will replace.
-     * @param replacement2 What to replace the second search with.
-     * @return The deserialized message.
-     */
-    public Text getMessage(String key, String search, String replacement, String search2, String replacement2) {
-        HashMap<String, Text> vars = new HashMap<>();
-        vars.put(search, Text.of(replacement));
-        vars.put(search2, Text.of(replacement2));
-        return getMessage(key, vars);
-    }
-
-    /**
-     * Locates and deserializes a message. The message supports formatting using
-     * the ampersand symbol.
-     * 
-     * @param key The key the message was stored with.
-     * @return The deserialized message.
-     */
     public Text getMessage(String key) {
-        return getMessage(key, new HashMap<>());
+        if (props.containsKey(key)) {
+            return TextSerializers.FORMATTING_CODE.deserialize(props.getProperty(key));
+        } else {
+            return Text.of(TextColors.RED, "!-----!");
+        }
     }
+
 }

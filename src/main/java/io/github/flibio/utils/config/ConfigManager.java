@@ -63,10 +63,24 @@ public class ConfigManager {
         }
     }
 
+    /**
+     * Creates a new ConfigManager.
+     * 
+     * @param folder The folder where the configuration file resides.
+     * @param file The name of the configuration file, including the extension.
+     * @param logger An instance of the logger.
+     * @return An instance of the ConfigManager.
+     */
     public static ConfigManager create(Path folder, String file, Logger logger) {
         return new ConfigManager(folder, file, logger);
     }
 
+    /**
+     * Sets the comment of a configuration option.
+     * 
+     * @param comment The comment of the configuration option.
+     * @param nodes Path to the configuration option.
+     */
     public void setComment(String comment, String... nodes) {
         try {
             CommentedConfigurationNode node = this.node.getNode((Object[]) nodes);
@@ -77,6 +91,16 @@ public class ConfigManager {
         }
     }
 
+    /**
+     * Sets the value of a configuration option if it does not already exist.
+     * Comments will always be saved.
+     * 
+     * @param <T> The type of the configuration option.
+     * @param comment The comment to place above the configuration option.
+     * @param type The class type of the configuration option.
+     * @param value The default value of the configuration option.
+     * @param nodes Path to the configuration option.
+     */
     public <T> void setDefault(String comment, Class<T> type, T value, String... nodes) {
         try {
             CommentedConfigurationNode node = this.node.getNode((Object[]) nodes);
@@ -91,6 +115,15 @@ public class ConfigManager {
         }
     }
 
+    /**
+     * Gets the value of a configuration option. Will return null if the option
+     * does not exist.
+     * 
+     * @param <T> The type of the configuration option.
+     * @param type The class type of the configuration option.
+     * @param nodes Path to the configuration option.
+     * @return The value of the configuration option.
+     */
     public <T> T getValue(Class<T> type, String... nodes) {
         CommentedConfigurationNode node = this.node.getNode((Object[]) nodes);
         if (node.isVirtual()) {
@@ -104,6 +137,9 @@ public class ConfigManager {
         }
     }
 
+    /**
+     * Saves the configuration file.
+     */
     public void save() {
         try {
             loader.save(node);
