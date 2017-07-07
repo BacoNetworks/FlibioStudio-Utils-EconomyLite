@@ -41,7 +41,7 @@ public class ConfigManager {
     private HoconConfigurationLoader loader;
     private CommentedConfigurationNode node;
 
-    private ConfigManager(Path folder, String file, Logger logger, String version) {
+    private ConfigManager(Path folder, String file, Logger logger) {
         this.logger = logger;
         // Make the folder directory
         folder.toFile().mkdirs();
@@ -61,12 +61,10 @@ public class ConfigManager {
         } catch (Exception e) {
             logger.error("Failed to load config file: " + e.getMessage());
         }
-        // Set the version
-        node.setComment(version);
     }
 
-    public static ConfigManager create(Path folder, String file, Logger logger, String version) {
-        return new ConfigManager(folder, file, logger, version);
+    public static ConfigManager create(Path folder, String file, Logger logger) {
+        return new ConfigManager(folder, file, logger);
     }
 
     public <T> void setDefault(String comment, Class<T> type, T value, String... nodes) {
