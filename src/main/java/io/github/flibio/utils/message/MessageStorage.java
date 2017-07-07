@@ -81,7 +81,7 @@ public class MessageStorage {
         }
     }
 
-    public MessageStorage create(Path folder, String bundle, Logger logger) {
+    public static MessageStorage create(Path folder, String bundle, Logger logger) {
         return new MessageStorage(folder, bundle, logger);
     }
 
