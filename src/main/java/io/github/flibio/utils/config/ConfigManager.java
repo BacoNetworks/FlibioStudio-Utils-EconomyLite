@@ -67,14 +67,25 @@ public class ConfigManager {
         return new ConfigManager(folder, file, logger);
     }
 
+    public void setComment(String comment, String... nodes) {
+        try {
+            CommentedConfigurationNode node = this.node.getNode((Object[]) nodes);
+            // Set the comment
+            node.setComment(comment);
+        } catch (Exception e) {
+            logger.error("Failed to set comment: " + e.getMessage());
+        }
+    }
+
     public <T> void setDefault(String comment, Class<T> type, T value, String... nodes) {
         try {
             CommentedConfigurationNode node = this.node.getNode((Object[]) nodes);
             // Make sure the node does not already have a value
             if (node.isVirtual()) {
                 node.setValue(TypeToken.of(type), value);
-                node.setComment(comment);
             }
+            // Set the comment
+            node.setComment(comment);
         } catch (Exception e) {
             logger.error("Failed to set default: " + e.getMessage());
         }
