@@ -49,7 +49,7 @@ public class MessageStorage {
     private Properties props;
     private Map<String, String> defaults = new HashMap<>();
 
-    private MessageStorage(Path folder, String bundle, Logger logger, String version) {
+    private MessageStorage(Path folder, String bundle, Logger logger) {
         // Create directory if it doesn't exist
         folder.toFile().mkdirs();
         // Setup file
@@ -80,15 +80,15 @@ public class MessageStorage {
         // Save the messages file
         try {
             FileOutputStream stream = new FileOutputStream(file);
-            props.store(stream, version);
+            props.store(stream, "EconomyLite Message Configuration");
             stream.close();
         } catch (Exception e) {
             logger.error("Error saving message file: " + e.getMessage());
         }
     }
 
-    public static MessageStorage create(Path folder, String bundle, Logger logger, String version) {
-        return new MessageStorage(folder, bundle, logger, version);
+    public static MessageStorage create(Path folder, String bundle, Logger logger) {
+        return new MessageStorage(folder, bundle, logger);
     }
 
     public String getRawMessage(String key) {
@@ -97,6 +97,10 @@ public class MessageStorage {
         } else {
             return "!-----!";
         }
+    }
+
+    public Text getMessage(String key) {
+        return getMessage(key, new String[0]);
     }
 
     public Text getMessage(String key, String... replacements) {
