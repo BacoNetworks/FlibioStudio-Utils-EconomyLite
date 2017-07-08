@@ -25,335 +25,184 @@
 
 package io.github.flibio.utils.file;
 
+import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.plugin.Plugin;
 
 import java.io.File;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
 
 public class FileManager {
 
+    private Object plugin;
     private Logger logger;
-    private String folderName;
+    private Path folder;
 
-    private ConcurrentHashMap<String, ConfigurationNode> cache = new ConcurrentHashMap<>();
+    private HashMap<String, ConfigurationNode> cache = Maps.newHashMap();
 
-    protected FileManager(Logger logger, String folderName) {
+    private FileManager(Path folder, Logger logger, Object plugin) {
         this.logger = logger;
-        this.folderName = folderName;
+        this.folder = folder;
+        this.plugin = plugin;
+        // Make the folder directory
+        folder.toFile().mkdirs();
+        // Start the save thread
+    }
+
+    public static FileManager create(Path folder, Logger logger, Object plugin) {
+        return new FileManager(folder, logger, plugin);
     }
 
     /**
-     * Creates a new FileManager instance.
+     * Checks if a node exists.
      * 
-     * @param plugin An instance of the main plugin class.
-     * @return The new FileManager instance.
-     */
-    public static FileManager createInstance(Object plugin) {
-        if (plugin.getClass().isAnnotationPresent(Plugin.class)) {
-            Plugin annotation = plugin.getClass().getAnnotation(Plugin.class);
-            Logger logger = Sponge.getGame().getPluginManager().getPlugin(annotation.id()).get().getLogger();
-            return new FileManager(logger, "config/" + annotation.name().toLowerCase().replaceAll(" ", ""));
-        }
-        throw new InvalidPluginException(plugin + " could not be resolved to a plugin class!");
-    }
-
-    /**
-     * Creates a new FileManager instance.
-     * 
-     * @param plugin An instance of the main plugin class.
-     * @param configDir The directory of the config
-     * @return The new FileManager instance.
-     */
-    public static FileManager createInstance(Object plugin, String configDir) {
-        if (plugin.getClass().isAnnotationPresent(Plugin.class)) {
-            Plugin annotation = plugin.getClass().getAnnotation(Plugin.class);
-            Logger logger = Sponge.getGame().getPluginManager().getPlugin(annotation.id()).get().getLogger();
-            return new FileManager(logger, configDir);
-        }
-        throw new InvalidPluginException(plugin + " could not be resolved to a plugin class!");
-    }
-
-    /**
-     * Sets a value in a file if one doesn't exit. Saves the the changed file to
-     * the disc.
-     * 
-     * @param fileName The name of the file. Must include the extension.
-     * @param path The path of the default value. Supports sub-paths using a '.'
-     *        seperator, only if subPath is set to true.
-     * @param type The type of the default value.
-     * @param value The default value.
-     * @param subPath If the path should split into sub-paths using the '.'
-     *        seperator.
-     */
-    public <T> void setDefault(String fileName, String path, Class<T> type, T value, boolean subPath) {
-        try {
-            ConfigurationNode root = getFile(fileName);
-            if (subPath) {
-                if (root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)) == null) {
-                    root.getNode((Object[]) path.split("\\.")).setValue(TypeToken.of(type), value);
-                    saveFile(fileName, root);
-                }
-            } else {
-                if (root.getNode(path).getValue(TypeToken.of(type)) == null) {
-                    root.getNode(path).setValue(TypeToken.of(type), value);
-                    saveFile(fileName, root);
-                }
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
-    }
-
-    /**
-     * Sets a value in a file if one doesn't exit. Saves the the changed file to
-     * the disc. Defaults the subPath value to true.
-     * 
-     * @param fileName The name of the file. Must include the extension.
-     * @param path The path of the default value. Supports sub-paths using a '.'
-     *        seperator, only if subPath is set to true.
-     * @param type The type of the default value.
-     * @param value The default value.
-     */
-    public <T> void setDefault(String fileName, String path, Class<T> type, T value) {
-        setDefault(fileName, path, type, value, true);
-    }
-
-    /**
-     * Deletes a value from a file,
-     * 
-     * @param fileName The file to delete from.
-     * @param path The path to delete.
-     * @return If the deletion was successful or not.
-     */
-    public boolean deleteValue(String fileName, String path) {
-        try {
-            ConfigurationNode root = getFile(fileName);
-            root.getNode((Object[]) path.split("\\.")).setValue(null);
-            saveFile(fileName, root);
-            return true;
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Sets a value in a file. Saves the the changed file to the disc.
-     * 
-     * @param fileName The name of the file. Must include the extension.
-     * @param path The path of the value. Supports sub-paths using a '.'
-     *        seperator.
-     * @param type The type of the value.
-     * @param value The value.
-     * @param subPath If the path should split into sub-paths using the '.'
-     *        seperator.
-     * @return If the value was successfully set or not.
-     */
-    public <T> boolean setValue(String fileName, String path, Class<T> type, T value, boolean subPath) {
-        try {
-            ConfigurationNode root = getFile(fileName);
-            if (subPath) {
-                root.getNode((Object[]) path.split("\\.")).setValue(TypeToken.of(type), value);
-            } else {
-                root.getNode(path).setValue(TypeToken.of(type), value);
-            }
-            saveFile(fileName, root);
-            return true;
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Sets a value in a file. Saves the the changed file to the disc. Defaults
-     * the subPath value to true.
-     * 
-     * @param fileName The name of the file. Must include the extension.
-     * @param path The path of the value. Supports sub-paths using a '.'
-     *        seperator.
-     * @param type The type of the value.
-     * @param value The value.
-     * @return If the value was successfully set or not.
-     */
-    public <T> boolean setValue(String fileName, String path, Class<T> type, T value) {
-        return setValue(fileName, path, type, value, true);
-    }
-
-    /**
-     * Gets a value from the specified file.
-     * 
-     * @param fileName The name of the file. Must include the extension.
-     * @param path The path of the value. Supports sub-paths using a '.'
-     *        seperator.
-     * @param type The type of the value.
-     * @param subPath If the path should split into sub-paths using the '.'
-     *        seperator.
-     * @return The value, if it was found.
-     */
-    public <T> Optional<T> getValue(String fileName, String path, Class<T> type, boolean subPath) {
-        try {
-            ConfigurationNode root = getFile(fileName);
-            if (subPath) {
-                if (root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)) != null) {
-                    return Optional.of(root.getNode((Object[]) path.split("\\.")).getValue(TypeToken.of(type)));
-                } else {
-                    return Optional.empty();
-                }
-            } else {
-                if (root.getNode(path).getValue(TypeToken.of(type)) != null) {
-                    return Optional.of(root.getNode(path).getValue(TypeToken.of(type)));
-                } else {
-                    return Optional.empty();
-                }
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * Gets a value from the specified file. Defaults the subPath value to true.
-     * 
-     * @param fileName The name of the file. Must include the extension.
-     * @param path The path of the value. Supports sub-paths using a '.'
-     *        seperator.
-     * @param type The type of the value.
-     * @return The value, if it was found.
-     */
-    public <T> Optional<T> getValue(String fileName, String path, Class<T> type) {
-        return getValue(fileName, path, type, true);
-    }
-
-    /**
-     * Checks if a configuration node exists.
-     * 
-     * @param fileName The name of the file. Must include the extension.
-     * @param path The path of the value. Supports sub-paths using a '.'
-     *        seperator.
-     * @param subPath If the path should split into sub-paths using the '.'
-     *        seperator.
+     * @param fileName The name of the file.
+     * @param path The path of the node.
      * @return If the node exists or not.
      */
-    public boolean nodeExists(String fileName, String path, boolean subPath) {
+    public boolean nodeExists(String fileName, String... path) {
+        return getFile(fileName).getNode((Object[]) path).isVirtual();
+    }
+
+    /**
+     * Gets the value of a node. Will return null if the option does not exist.
+     * 
+     * @param <T> The type of the node.
+     * @param type The class type of the node.
+     * @param path Path to the node.
+     * @return The value of the node.
+     */
+    public <T> T getValue(String fileName, Class<T> type, String... path) {
+        ConfigurationNode node = getFile(fileName).getNode((Object[]) path);
         try {
-            ConfigurationNode root = getFile(fileName);
-            if (subPath) {
-                return !root.getNode((Object[]) path.split("\\.")).isVirtual();
-            } else {
-                return !root.getNode(path).isVirtual();
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage());
+            return node.getValue(TypeToken.of(type));
+        } catch (ObjectMappingException e) {
+            logger.error("Failed to get node " + path + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Sets the value of a node.
+     * 
+     * @param <T> The type of the node.
+     * @param fileName The name of the file.
+     * @param type The class type of the node.
+     * @param value The value to set the node to.
+     * @param path The path to the node.
+     * @return If the value was set successfully or not.
+     */
+    public <T> boolean setValue(String fileName, Class<T> type, T value, String... path) {
+        ConfigurationNode node = getFile(fileName).getNode((Object[]) path);
+        try {
+            node.setValue(TypeToken.of(type), value);
+            saveFile(fileName);
+            return true;
+        } catch (ObjectMappingException e) {
+            logger.error("Failed to set node " + path + ": " + e.getMessage());
             return false;
         }
     }
 
     /**
-     * Checks if a configuration node exists. Defaults the subPath value to
-     * true.
+     * Deletes a node.
      * 
-     * @param fileName The name of the file. Must include the extension.
-     * @param path The path of the value. Supports sub-paths using a '.'
-     *        seperator.
-     * @return If the node exists or not.
+     * @param fileName The name of the file.
+     * @param path The path to the node.
      */
-    public boolean nodeExists(String fileName, String path) {
-        return nodeExists(fileName, path, true);
+    public void deleteValue(String fileName, String... path) {
+        ConfigurationNode node = getFile(fileName).getNode((Object[]) path);
+        node.setValue(null);
+        saveFile(fileName);
     }
 
     /**
-     * Gets a file using the specified name. Generates a new file if one is not
-     * already present.
+     * Gets a file. The file will be created if it doesn't exist.
      * 
-     * @param fileName The name of the file. Must include the extension.
-     * @return The file, if no error has occurred.
+     * @param fileName The name of the file.
+     * @return The file.
+     */
+    public File getRawFile(String fileName) {
+        File file = Paths.get(folder.toString(), fileName).toFile();
+        // Make the file if it doesn't exist
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                logger.error("Failed to create " + file.getName() + ": " + e.getMessage());
+            }
+        }
+        return file;
+    }
+
+    /**
+     * Gets the node from a file. The file will be created if it doesn't exist.
+     * 
+     * @param fileName The name of the file.
+     * @return The node generated from the file.
      */
     public ConfigurationNode getFile(String fileName) {
-        try {
-            if (cache.containsKey(fileName)) {
-                return cache.get(fileName);
-            } else {
-                loadFileFromDisk(fileName);
-                return cache.get(fileName);
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            throw new FileIOException("Failed to load " + fileName + "!");
+        if (cache.containsKey(fileName)) {
+            // Get the file from the cache
+            return cache.get(fileName);
+        } else {
+            // Reload the file
+            return reloadFile(fileName);
         }
     }
 
     /**
-     * Reloads a file from the disk.
+     * Forces a file to be loaded. The file will be created if it doesn't exist.
      * 
-     * @param fileName The file to reload.
+     * @param fileName The name of the file.
+     * @return The node generated from the file.
      */
-    public void reloadFile(String fileName) {
-        loadFileFromDisk(fileName);
+    public ConfigurationNode reloadFile(String fileName) {
+        File file = getRawFile(fileName);
+        try {
+            ConfigurationNode node = HoconConfigurationLoader.builder().setFile(file).build().load();
+            cache.put(fileName, node);
+            return node;
+        } catch (IOException e) {
+            logger.error("Failed to load " + fileName + ": " + e.getMessage());
+            return null;
+        }
     }
 
     /**
-     * Gets a file from the disk. No parsing is done to the file.
+     * Saves a node to a file.
      * 
-     * @param fileName The name of the file. Must include the extension.
-     * @return The file, if no error has occurred.
+     * @param fileName The name of the file.
+     * @param node The node to write to the file.
      */
-    public Optional<File> getRawFile(String fileName) {
-        File folder = new File(folderName);
-        File file = new File(folderName + "/" + fileName);
-        try {
-            folder.mkdirs();
-            file.createNewFile();
-            return Optional.of(file);
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            return Optional.empty();
-        }
+    public void saveFile(String fileName, ConfigurationNode node) {
+        cache.put(fileName, node);
+        saveFile(fileName);
     }
 
     /**
      * Saves a file.
      * 
-     * @param fileName The name of the file. Must include the extension.
-     * @param root The contents of the file.
+     * @param fileName The name of the file.
      */
-    public void saveFile(String fileName, ConfigurationNode root) {
-        cache.put(fileName, root);
-        saveFileToDisk(fileName, root);
+    public void saveFile(String fileName) {
+        if (!cache.containsKey(fileName))
+            return;
+        // Save the file
+        Sponge.getScheduler().createTaskBuilder().execute(c -> {
+            try {
+                HoconConfigurationLoader.builder().setFile(getRawFile(fileName)).build().save(cache.get(fileName));
+            } catch (IOException e) {
+                logger.error("Failed to save " + fileName + ": " + e.getMessage());
+            }
+        }).async().submit(plugin);
     }
 
-    public void saveFileToDisk(String fileName, ConfigurationNode root) {
-        File folder = new File(folderName);
-        File file = new File(folderName + "/" + fileName);
-        try {
-            folder.mkdirs();
-            file.createNewFile();
-            ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(file).build();
-            manager.save(root);
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
-    }
-
-    private void loadFileFromDisk(String fileName) {
-        try {
-            File folder = new File(folderName);
-            File file = new File(folderName + "/" + fileName);
-            folder.mkdirs();
-            file.createNewFile();
-            ConfigurationLoader<?> manager = HoconConfigurationLoader.builder().setFile(file).build();
-            ConfigurationNode root = manager.load();
-            cache.put(fileName, root);
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
-    }
 }
