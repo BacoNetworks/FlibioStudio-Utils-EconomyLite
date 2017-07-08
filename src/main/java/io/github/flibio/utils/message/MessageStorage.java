@@ -27,7 +27,6 @@ package io.github.flibio.utils.message;
 
 import org.slf4j.Logger;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.io.File;
@@ -36,16 +35,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MessageStorage {
 
     private File file;
     private Properties props;
+    private Map<String, String> defaults = new HashMap<>();
 
-    private MessageStorage(Path folder, String bundle, Logger logger) {
+    private MessageStorage(Path folder, String bundle, Logger logger, String version) {
         // Create directory if it doesn't exist
         folder.toFile().mkdirs();
         // Setup file
@@ -69,28 +73,53 @@ public class MessageStorage {
         // Load the message bundle and check default values
         ResourceBundle rb = ResourceBundle.getBundle(bundle, Locale.getDefault());
         rb.keySet().forEach(key -> {
-            props.putIfAbsent(key, rb.getString(key));
+            String val = rb.getString(key);
+            props.putIfAbsent(key, val);
+            defaults.put(key, val);
         });
         // Save the messages file
         try {
             FileOutputStream stream = new FileOutputStream(file);
-            props.store(stream, "HELLO");
+            props.store(stream, version);
             stream.close();
         } catch (Exception e) {
             logger.error("Error saving message file: " + e.getMessage());
         }
     }
 
-    public static MessageStorage create(Path folder, String bundle, Logger logger) {
-        return new MessageStorage(folder, bundle, logger);
+    public static MessageStorage create(Path folder, String bundle, Logger logger, String version) {
+        return new MessageStorage(folder, bundle, logger, version);
     }
 
-    public Text getMessage(String key) {
+    public String getRawMessage(String key) {
         if (props.containsKey(key)) {
-            return TextSerializers.FORMATTING_CODE.deserialize(props.getProperty(key));
+            return props.getProperty(key);
         } else {
-            return Text.of(TextColors.RED, "!-----!");
+            return "!-----!";
         }
     }
 
+    public Text getMessage(String key, String... replacements) {
+        String[] variables = replacements;
+        String defaultMessage = defaults.get(key);
+        if (defaultMessage == null)
+            defaultMessage = "!-----!";
+        String message = getRawMessage(key);
+        // Find all of the variables in the default message
+        Matcher mt = Pattern.compile("/({\\w*})/").matcher(defaultMessage);
+        while (mt.find()) {
+            String var = mt.group();
+            message.replaceAll("{" + var + "}", variables[0]);
+        }
+        return TextSerializers.FORMATTING_CODE.deserialize(message);
+    }
+
+    public Text getMessage(String key, Text... replacements) {
+        Text[] textVariables = replacements;
+        String[] variables = new String[textVariables.length];
+        for (int i = 0; i < textVariables.length; i++) {
+            variables[i] = TextSerializers.FORMATTING_CODE.serialize(textVariables[i]);
+        }
+        return getMessage(key, variables);
+    }
 }
