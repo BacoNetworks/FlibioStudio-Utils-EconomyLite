@@ -31,7 +31,6 @@ import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.slf4j.Logger;
-import org.spongepowered.api.Sponge;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +40,6 @@ import java.util.HashMap;
 
 public class FileManager {
 
-    private Object plugin;
     private Logger logger;
     private Path folder;
 
@@ -50,10 +48,8 @@ public class FileManager {
     private FileManager(Path folder, Logger logger, Object plugin) {
         this.logger = logger;
         this.folder = folder;
-        this.plugin = plugin;
         // Make the folder directory
         folder.toFile().mkdirs();
-        // Start the save thread
     }
 
     public static FileManager create(Path folder, Logger logger, Object plugin) {
@@ -195,14 +191,11 @@ public class FileManager {
     public void saveFile(String fileName) {
         if (!cache.containsKey(fileName))
             return;
-        // Save the file
-        Sponge.getScheduler().createTaskBuilder().execute(c -> {
-            try {
-                HoconConfigurationLoader.builder().setFile(getRawFile(fileName)).build().save(cache.get(fileName));
-            } catch (IOException e) {
-                logger.error("Failed to save " + fileName + ": " + e.getMessage());
-            }
-        }).async().submit(plugin);
+        try {
+            HoconConfigurationLoader.builder().setFile(getRawFile(fileName)).build().save(cache.get(fileName));
+        } catch (IOException e) {
+            logger.error("Failed to save " + fileName + ": " + e.getMessage());
+        }
     }
 
 }
