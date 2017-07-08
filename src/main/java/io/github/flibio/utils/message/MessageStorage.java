@@ -25,20 +25,20 @@
 
 package io.github.flibio.utils.message;
 
+import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,14 +46,14 @@ import java.util.regex.Pattern;
 public class MessageStorage {
 
     private File file;
-    private Properties props;
+    private CommentedConfigurationNode node;
     private Map<String, String> defaults = new HashMap<>();
 
     private MessageStorage(Path folder, String bundle, Logger logger) {
         // Create directory if it doesn't exist
         folder.toFile().mkdirs();
         // Setup file
-        file = Paths.get(folder.toString(), bundle + ".properties").toFile();
+        file = Paths.get(folder.toString(), bundle + ".conf").toFile();
         if (!file.exists()) {
             try {
                 file.createNewFile();
@@ -62,28 +62,27 @@ public class MessageStorage {
             }
         }
         // Load the file
-        props = new Properties();
+        HoconConfigurationLoader loader = HoconConfigurationLoader.builder().setFile(file).build();
         try {
-            FileInputStream stream = new FileInputStream(file);
-            props.load(stream);
-            stream.close();
+            node = loader.load();
         } catch (Exception e) {
-            logger.error("Error loading message file: " + e.getMessage());
+            logger.error("Failed to load message file: " + e.getMessage());
         }
         // Load the message bundle and check default values
         ResourceBundle rb = ResourceBundle.getBundle(bundle, Locale.getDefault());
         rb.keySet().forEach(key -> {
             String val = rb.getString(key);
-            props.putIfAbsent(key, val);
+            ConfigurationNode childNode = node.getNode(transform(key));
+            if (childNode.isVirtual()) {
+                childNode.setValue(val);
+            }
             defaults.put(key, val);
         });
         // Save the messages file
         try {
-            FileOutputStream stream = new FileOutputStream(file);
-            props.store(stream, "EconomyLite Message Configuration");
-            stream.close();
+            loader.save(node);
         } catch (Exception e) {
-            logger.error("Error saving message file: " + e.getMessage());
+            logger.error("Failed to save message file: " + e.getMessage());
         }
     }
 
@@ -92,8 +91,9 @@ public class MessageStorage {
     }
 
     public String getRawMessage(String key) {
-        if (props.containsKey(key)) {
-            return props.getProperty(key);
+        ConfigurationNode childNode = node.getNode(transform(key));
+        if (!childNode.isVirtual()) {
+            return childNode.getString();
         } else {
             return "!-----!";
         }
@@ -110,10 +110,12 @@ public class MessageStorage {
             defaultMessage = "!-----!";
         String message = getRawMessage(key);
         // Find all of the variables in the default message
-        Matcher mt = Pattern.compile("/({\\w*})/").matcher(defaultMessage);
+        Matcher mt = Pattern.compile("(\\{[\\w]*\\})").matcher(defaultMessage);
+        int i = 0;
         while (mt.find()) {
             String var = mt.group();
-            message.replaceAll("{" + var + "}", variables[0]);
+            message = message.replaceAll("\\{" + var.substring(1, var.length() - 1) + "\\}", variables[i]);
+            i++;
         }
         return TextSerializers.FORMATTING_CODE.deserialize(message);
     }
@@ -125,5 +127,9 @@ public class MessageStorage {
             variables[i] = TextSerializers.FORMATTING_CODE.serialize(textVariables[i]);
         }
         return getMessage(key, variables);
+    }
+
+    private String transform(String key) {
+        return key.replaceAll("\\.", "-");
     }
 }
