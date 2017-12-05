@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 public class ConfigManager {
 
@@ -124,16 +125,16 @@ public class ConfigManager {
      * @param nodes Path to the configuration option.
      * @return The value of the configuration option.
      */
-    public <T> T getValue(Class<T> type, String... nodes) {
+    public <T> Optional<T> getValue(Class<T> type, String... nodes) {
         CommentedConfigurationNode node = this.node.getNode((Object[]) nodes);
         if (node.isVirtual()) {
-            return null;
+            return Optional.empty();
         }
         try {
-            return node.getValue(TypeToken.of(type));
+            return Optional.of(node.getValue(TypeToken.of(type)));
         } catch (Exception e) {
             logger.error("Failed to map object: " + e.getMessage());
-            return null;
+            return Optional.empty();
         }
     }
 
