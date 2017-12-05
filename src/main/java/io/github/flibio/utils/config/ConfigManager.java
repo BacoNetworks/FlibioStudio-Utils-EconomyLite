@@ -148,16 +148,16 @@ public class ConfigManager {
      * @param nodes Path to the configuration option.
      * @return The value of the configuration option.
      */
-    public <T> Optional<T> getValue(Class<T> type, T defaultValue, String... nodes) {
+    public <T> T getValue(Class<T> type, T defaultValue, String... nodes) {
         CommentedConfigurationNode node = this.node.getNode((Object[]) nodes);
         if (node.isVirtual()) {
-            return Optional.of(defaultValue);
+            return defaultValue;
         }
         try {
-            return Optional.of(node.getValue(TypeToken.of(type)));
+            return node.getValue(TypeToken.of(type));
         } catch (Exception e) {
             logger.error("Failed to map object: " + e.getMessage());
-            return Optional.of(defaultValue);
+            return defaultValue;
         }
     }
 
