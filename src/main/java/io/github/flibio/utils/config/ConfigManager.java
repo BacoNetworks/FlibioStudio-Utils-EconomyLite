@@ -139,6 +139,29 @@ public class ConfigManager {
     }
 
     /**
+     * Gets the value of a configuration option. Will return default if option
+     * does not exist.
+     * 
+     * @param <T> The type of the configuration option.
+     * @param type The class type of the configuration option.
+     * @param defaultValue The default value used if option does not exist.
+     * @param nodes Path to the configuration option.
+     * @return The value of the configuration option.
+     */
+    public <T> Optional<T> getValue(Class<T> type, T defaultValue, String... nodes) {
+        CommentedConfigurationNode node = this.node.getNode((Object[]) nodes);
+        if (node.isVirtual()) {
+            return Optional.of(defaultValue);
+        }
+        try {
+            return Optional.of(node.getValue(TypeToken.of(type)));
+        } catch (Exception e) {
+            logger.error("Failed to map object: " + e.getMessage());
+            return Optional.of(defaultValue);
+        }
+    }
+
+    /**
      * Saves the configuration file.
      */
     public void save() {
