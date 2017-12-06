@@ -70,7 +70,7 @@ public class MessageStorage {
         ResourceBundle rb = ResourceBundle.getBundle(bundle, Locale.getDefault());
         rb.keySet().forEach(key -> {
             String val = rb.getString(key);
-            ConfigurationNode childNode = node.getNode(key);
+            ConfigurationNode childNode = node.getNode(transform(key));
             if (childNode.isVirtual()) {
                 childNode.setValue(val);
             }
@@ -89,7 +89,7 @@ public class MessageStorage {
     }
 
     public String getRawMessage(String key) {
-        ConfigurationNode childNode = node.getNode(key);
+        ConfigurationNode childNode = node.getNode(transform(key));
         if (!childNode.isVirtual()) {
             return childNode.getString();
         } else {
@@ -103,13 +103,17 @@ public class MessageStorage {
 
     public Text getMessage(String key, String... variables) {
         // Verify variable count is even
-        if ((variables.length & 1) == 0)
+        if ((variables.length % 2) != 0)
             return Text.of("!-----!");
         String message = getRawMessage(key);
         // Loop variables
-        for (int i = 0; i < variables.length / 2; i = i + 2) {
-            message = message.replaceAll("\\{" + variables[i] + "\\}", variables[i + 1]);
+        for (int i = 0; i <= variables.length - 2; i = i + 2) {
+            message = message.replaceAll("\\{" + variables[i] + "\\}", variables[i + 1] + "&r");
         }
         return TextSerializers.FORMATTING_CODE.deserialize(message);
+    }
+
+    private String transform(String key) {
+        return key.replaceAll("\\.", "-");
     }
 }
