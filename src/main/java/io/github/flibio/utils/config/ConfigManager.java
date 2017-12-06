@@ -110,10 +110,24 @@ public class ConfigManager {
                 node.setValue(TypeToken.of(type), value);
             }
             // Set the comment
-            node.setComment(comment);
+            if (!comment.isEmpty())
+                node.setComment(comment);
         } catch (Exception e) {
             logger.error("Failed to set default: " + e.getMessage());
         }
+    }
+
+    /**
+     * Sets the value of a configuration option if it does not already exist.
+     * Comments will always be saved.
+     * 
+     * @param <T> The type of the configuration option.
+     * @param type The class type of the configuration option.
+     * @param value The default value of the configuration option.
+     * @param nodes Path to the configuration option.
+     */
+    public <T> void setDefault(Class<T> type, T value, String... nodes) {
+        setDefault("", type, value, nodes);
     }
 
     /**

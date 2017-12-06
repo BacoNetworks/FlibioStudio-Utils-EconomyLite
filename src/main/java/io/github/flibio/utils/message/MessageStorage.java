@@ -40,8 +40,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MessageStorage {
 
@@ -72,7 +70,7 @@ public class MessageStorage {
         ResourceBundle rb = ResourceBundle.getBundle(bundle, Locale.getDefault());
         rb.keySet().forEach(key -> {
             String val = rb.getString(key);
-            ConfigurationNode childNode = node.getNode(transform(key));
+            ConfigurationNode childNode = node.getNode(key);
             if (childNode.isVirtual()) {
                 childNode.setValue(val);
             }
@@ -91,7 +89,7 @@ public class MessageStorage {
     }
 
     public String getRawMessage(String key) {
-        ConfigurationNode childNode = node.getNode(transform(key));
+        ConfigurationNode childNode = node.getNode(key);
         if (!childNode.isVirtual()) {
             return childNode.getString();
         } else {
@@ -103,33 +101,15 @@ public class MessageStorage {
         return getMessage(key, new String[0]);
     }
 
-    public Text getMessage(String key, String... replacements) {
-        String[] variables = replacements;
-        String defaultMessage = defaults.get(key);
-        if (defaultMessage == null)
-            defaultMessage = "!-----!";
+    public Text getMessage(String key, String... variables) {
+        // Verify variable count is even
+        if ((variables.length & 1) == 0)
+            return Text.of("!-----!");
         String message = getRawMessage(key);
-        // Find all of the variables in the default message
-        Matcher mt = Pattern.compile("(\\{[\\w]*\\})").matcher(defaultMessage);
-        int i = 0;
-        while (mt.find()) {
-            String var = mt.group();
-            message = message.replaceAll("\\{" + var.substring(1, var.length() - 1) + "\\}", variables[i]);
-            i++;
+        // Loop variables
+        for (int i = 0; i < variables.length / 2; i = i + 2) {
+            message = message.replaceAll("\\{" + variables[i] + "\\}", variables[i + 1]);
         }
         return TextSerializers.FORMATTING_CODE.deserialize(message);
-    }
-
-    public Text getMessage(String key, Text... replacements) {
-        Text[] textVariables = replacements;
-        String[] variables = new String[textVariables.length];
-        for (int i = 0; i < textVariables.length; i++) {
-            variables[i] = TextSerializers.FORMATTING_CODE.serialize(textVariables[i]);
-        }
-        return getMessage(key, variables);
-    }
-
-    private String transform(String key) {
-        return key.replaceAll("\\.", "-");
     }
 }
