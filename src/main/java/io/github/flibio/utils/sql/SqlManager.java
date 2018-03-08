@@ -108,12 +108,12 @@ public class SqlManager {
      *        chronological order.
      * @return If the update was successful or not.
      */
-    public boolean executeUpdate(String sql, String... vars) {
+    public boolean executeUpdate(String sql, Object... vars) {
         try {
             reconnect();
             PreparedStatement ps = con.prepareStatement(sql);
             for (int i = 0; i < vars.length; i++) {
-                ps.setString(i + 1, vars[i]);
+                ps.setObject(i + 1, vars[i]);
             }
             return (ps.executeUpdate() > 0);
         } catch (Exception e) {
@@ -131,12 +131,12 @@ public class SqlManager {
      *        chronological order.
      * @return The ResultSet retrieved from the query.
      */
-    public Optional<ResultSet> executeQuery(String sql, String... vars) {
+    public Optional<ResultSet> executeQuery(String sql, Object... vars) {
         try {
             reconnect();
             PreparedStatement ps = con.prepareStatement(sql);
             for (int i = 0; i < vars.length; i++) {
-                ps.setString(i + 1, vars[i]);
+                ps.setObject(i + 1, vars[i]);
             }
             return Optional.of(ps.executeQuery());
         } catch (Exception e) {
@@ -157,7 +157,7 @@ public class SqlManager {
      * @return The column's data, if it was found.
      */
     @SuppressWarnings("unchecked")
-    public <T> Optional<T> queryType(String columnName, Class<T> type, String sql, String... vars) {
+    public <T> Optional<T> queryType(String columnName, Class<T> type, String sql, Object... vars) {
         try {
             Optional<ResultSet> rOpt = executeQuery(sql, vars);
             if (rOpt.isPresent()) {
@@ -186,7 +186,7 @@ public class SqlManager {
      * @return The list of data.
      */
     @SuppressWarnings("unchecked")
-    public <T> List<T> queryTypeList(String columnName, Class<T> type, String sql, String... vars) {
+    public <T> List<T> queryTypeList(String columnName, Class<T> type, String sql, Object... vars) {
         ArrayList<T> list = new ArrayList<>();
         try {
             Optional<ResultSet> rOpt = executeQuery(sql, vars);
@@ -211,7 +211,7 @@ public class SqlManager {
      *        chronological order.
      * @return If the row was found or not.
      */
-    public boolean queryExists(String sql, String... vars) {
+    public boolean queryExists(String sql, Object... vars) {
         try {
             Optional<ResultSet> rOpt = executeQuery(sql, vars);
             if (rOpt.isPresent()) {
