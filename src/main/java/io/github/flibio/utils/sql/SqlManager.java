@@ -63,7 +63,7 @@ public class SqlManager {
 
     /**
      * Tests if the connection to the database if functional.
-     * 
+     *
      * @return If the connection to the database if functional.
      */
     public boolean testConnection() {
@@ -102,7 +102,7 @@ public class SqlManager {
     /**
      * Executes an update to the database. Recommended to run in an async
      * thread.
-     * 
+     *
      * @param sql The sql to execute.
      * @param vars The variables to replace in the sql. Replaced in
      *        chronological order.
@@ -125,7 +125,7 @@ public class SqlManager {
 
     /**
      * Runs a query on the database. Recommended to run in an async thread.
-     * 
+     *
      * @param sql The sql to run.
      * @param vars The variables to replace in the sql. Replaced in
      *        chronological order.
@@ -148,7 +148,7 @@ public class SqlManager {
 
     /**
      * Queries the database and retrieves a column's data.
-     * 
+     *
      * @param columnName The column to retrieve that data of.
      * @param type The type of data to retrieve.
      * @param sql The sql to run.
@@ -177,7 +177,7 @@ public class SqlManager {
 
     /**
      * Queries the database and retrieves a list of data.
-     * 
+     *
      * @param columnName The column whose data will be added to the list.
      * @param type The type of data to retrieve.
      * @param sql The sql to run.
@@ -205,7 +205,7 @@ public class SqlManager {
 
     /**
      * Queries the database and checks if a row exists.
-     * 
+     *
      * @param sql The sql to run.
      * @param vars The variables to replace in the sql. Replaced in
      *        chronological order.
