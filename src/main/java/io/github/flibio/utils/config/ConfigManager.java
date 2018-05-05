@@ -177,6 +177,20 @@ public class ConfigManager {
     }
 
     /**
+     * Gets the value of a configuration option. Will return default if option
+     * does not exist.
+     *
+     * @param <T> The type of the configuration option.
+     * @param type The class type of the configuration option.
+     * @param defaultValue The default value used if option does not exist.
+     * @param nodes Path to the configuration option.
+     * @return The value of the configuration option.
+     */
+    public <T> T getValue(T defaultValue, Class<T> type, String... nodes) {
+        return getValue(type, defaultValue, nodes);
+    }
+
+    /**
      * Forcefully sets a configuration nodes value.
      *
      * @param <T> The type of the configuration option.
