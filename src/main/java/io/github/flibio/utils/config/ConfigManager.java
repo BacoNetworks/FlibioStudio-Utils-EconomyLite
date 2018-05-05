@@ -66,7 +66,7 @@ public class ConfigManager {
 
     /**
      * Creates a new ConfigManager.
-     * 
+     *
      * @param folder The folder where the configuration file resides.
      * @param file The name of the configuration file, including the extension.
      * @param logger An instance of the logger.
@@ -78,7 +78,7 @@ public class ConfigManager {
 
     /**
      * Sets the comment of a configuration option.
-     * 
+     *
      * @param comment The comment of the configuration option.
      * @param nodes Path to the configuration option.
      */
@@ -95,7 +95,7 @@ public class ConfigManager {
     /**
      * Sets the value of a configuration option if it does not already exist.
      * Comments will always be saved.
-     * 
+     *
      * @param <T> The type of the configuration option.
      * @param comment The comment to place above the configuration option.
      * @param type The class type of the configuration option.
@@ -110,8 +110,9 @@ public class ConfigManager {
                 node.setValue(TypeToken.of(type), value);
             }
             // Set the comment
-            if (!comment.isEmpty())
+            if (!comment.isEmpty()) {
                 node.setComment(comment);
+            }
         } catch (Exception e) {
             logger.error("Failed to set default: " + e.getMessage());
         }
@@ -120,7 +121,7 @@ public class ConfigManager {
     /**
      * Sets the value of a configuration option if it does not already exist.
      * Comments will always be saved.
-     * 
+     *
      * @param <T> The type of the configuration option.
      * @param type The class type of the configuration option.
      * @param value The default value of the configuration option.
@@ -133,7 +134,7 @@ public class ConfigManager {
     /**
      * Gets the value of a configuration option. Will return null if the option
      * does not exist.
-     * 
+     *
      * @param <T> The type of the configuration option.
      * @param type The class type of the configuration option.
      * @param nodes Path to the configuration option.
@@ -155,7 +156,7 @@ public class ConfigManager {
     /**
      * Gets the value of a configuration option. Will return default if option
      * does not exist.
-     * 
+     *
      * @param <T> The type of the configuration option.
      * @param type The class type of the configuration option.
      * @param defaultValue The default value used if option does not exist.
@@ -173,6 +174,41 @@ public class ConfigManager {
             logger.error("Failed to map object: " + e.getMessage());
             return defaultValue;
         }
+    }
+
+    /**
+     * Forcefully sets a configuration nodes value.
+     *
+     * @param <T> The type of the configuration option.
+     * @param value The value to force upon the node.
+     * @param nodes Path to the configuration option.
+     */
+    public <T> void forceValue(T value, String... nodes) {
+        try {
+            CommentedConfigurationNode node = this.node.getNode((Object[]) nodes);
+            node.setValue(value);
+        } catch (Exception e) {
+            logger.error("Failed to force value: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Gets the configuration file directly for use.
+     *
+     * @return The configuration file.
+     */
+    public CommentedConfigurationNode getNode() {
+        return node;
+    }
+
+    /**
+     * Forces the update of the configuration node. Also saves the node.
+     *
+     * @param node The node to overwrite with.
+     */
+    public void overwriteNode(CommentedConfigurationNode node) {
+        this.node = node;
+        save();
     }
 
     /**
