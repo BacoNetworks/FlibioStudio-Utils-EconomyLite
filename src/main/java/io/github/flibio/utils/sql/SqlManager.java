@@ -88,9 +88,10 @@ public class SqlManager {
 
     private void reconnect() {
         try {
-            if (!testConnection() || con == null) {
-                if (con != null && !con.isClosed())
+            if (con == null || !testConnection()) {
+                if (con != null && !con.isClosed()) {
                     con.close();
+                }
                 openConnection();
             }
         } catch (Exception e) {
@@ -112,6 +113,7 @@ public class SqlManager {
         try {
             reconnect();
             PreparedStatement ps = con.prepareStatement(sql);
+            ps.closeOnCompletion();
             for (int i = 0; i < vars.length; i++) {
                 ps.setObject(i + 1, vars[i]);
             }
@@ -135,6 +137,7 @@ public class SqlManager {
         try {
             reconnect();
             PreparedStatement ps = con.prepareStatement(sql);
+            ps.closeOnCompletion();
             for (int i = 0; i < vars.length; i++) {
                 ps.setObject(i + 1, vars[i]);
             }
@@ -164,6 +167,7 @@ public class SqlManager {
                 ResultSet rs = rOpt.get();
                 rs.next();
                 Object raw = rs.getObject(columnName);
+                rs.close();
                 if (raw.getClass().equals(type)) {
                     return Optional.of((T) raw);
                 }
@@ -196,6 +200,7 @@ public class SqlManager {
                     Object raw = rs.getObject(columnName);
                     list.add((T) raw);
                 }
+                rs.close();
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -216,7 +221,9 @@ public class SqlManager {
             Optional<ResultSet> rOpt = executeQuery(sql, vars);
             if (rOpt.isPresent()) {
                 ResultSet rs = rOpt.get();
-                return rs.next();
+                boolean exists = rs.next();
+                rs.close();
+                return exists;
             }
             return false;
         } catch (Exception e) {
