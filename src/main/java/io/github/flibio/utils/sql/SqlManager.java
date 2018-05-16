@@ -69,6 +69,7 @@ public class SqlManager {
     public boolean testConnection() {
         try {
             PreparedStatement ps = con.prepareStatement("SELECT 1");
+            ps.closeOnCompletion();
             ps.executeQuery();
             return true;
         } catch (Exception e) {
