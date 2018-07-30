@@ -47,6 +47,12 @@ public class SqlManager {
 
     private DataSource dataSource;
 
+    /**
+     * Manages SQL connections and database calls. initalTestConnection() must be called before the manager is used.
+     *
+     * @param logger The logger.
+     * @param datasource A string form of the data source.
+     */
     protected SqlManager(Logger logger, String datasource) {
         this.logger = logger;
         this.datasource = datasource;
@@ -55,7 +61,7 @@ public class SqlManager {
 
     public boolean initialTestConnection() {
         try {
-            sql.getDataSource(datasource);
+            dataSource = sql.getDataSource(datasource);
             return true;
         } catch (Exception e) {
             return false;
