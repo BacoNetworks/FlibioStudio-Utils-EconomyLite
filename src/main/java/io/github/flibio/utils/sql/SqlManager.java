@@ -32,6 +32,7 @@ import org.spongepowered.api.service.sql.SqlService;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +45,7 @@ public class SqlManager {
     private String datasource;
     private SqlService sql;
 
-    private Connection con;
+    private DataSource dataSource;
 
     protected SqlManager(Logger logger, String datasource) {
         this.logger = logger;
@@ -68,36 +69,17 @@ public class SqlManager {
      */
     public boolean testConnection() {
         try {
-            PreparedStatement ps = con.prepareStatement("SELECT 1");
-            ps.closeOnCompletion();
-            ps.executeQuery();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private void openConnection() {
-        try {
-            DataSource source = sql.getDataSource(datasource);
-            con = source.getConnection();
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.error(e.getMessage());
-        }
-    }
-
-    private void reconnect() {
-        try {
-            if (con == null || !testConnection()) {
-                if (con != null && !con.isClosed()) {
-                    con.close();
-                }
-                openConnection();
+            Connection con = dataSource.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement("SELECT 1");
+                ps.closeOnCompletion();
+                ps.executeQuery();
+            } finally {
+                con.close();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.error(e.getMessage());
+            return true;
+        } catch (SQLException e) {
+            return false;
         }
     }
 
@@ -112,13 +94,17 @@ public class SqlManager {
      */
     public boolean executeUpdate(String sql, Object... vars) {
         try {
-            reconnect();
-            PreparedStatement ps = con.prepareStatement(sql);
-            ps.closeOnCompletion();
-            for (int i = 0; i < vars.length; i++) {
-                ps.setObject(i + 1, vars[i]);
+            Connection con = dataSource.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(sql);
+                ps.closeOnCompletion();
+                for (int i = 0; i < vars.length; i++) {
+                    ps.setObject(i + 1, vars[i]);
+                }
+                return (ps.executeUpdate() > 0);
+            } finally {
+                con.close();
             }
-            return (ps.executeUpdate() > 0);
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(e.getMessage());
@@ -136,13 +122,17 @@ public class SqlManager {
      */
     public Optional<ResultSet> executeQuery(String sql, Object... vars) {
         try {
-            reconnect();
-            PreparedStatement ps = con.prepareStatement(sql);
-            ps.closeOnCompletion();
-            for (int i = 0; i < vars.length; i++) {
-                ps.setObject(i + 1, vars[i]);
+            Connection con = dataSource.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(sql);
+                ps.closeOnCompletion();
+                for (int i = 0; i < vars.length; i++) {
+                    ps.setObject(i + 1, vars[i]);
+                }
+                return Optional.of(ps.executeQuery());
+            } finally {
+                con.close();
             }
-            return Optional.of(ps.executeQuery());
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(e.getMessage());
