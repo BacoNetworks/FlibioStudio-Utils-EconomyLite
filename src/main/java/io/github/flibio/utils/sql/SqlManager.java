@@ -105,6 +105,7 @@ public class SqlManager {
             Connection con = dataSource.getConnection();
             try {
                 PreparedStatement ps = con.prepareStatement(sql);
+                ps.closeOnCompletion();
                 for (int i = 0; i < vars.length; i++) {
                     ps.setObject(i + 1, vars[i]);
                 }
