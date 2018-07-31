@@ -62,6 +62,8 @@ public class SqlManager {
     public boolean initialTestConnection() {
         try {
             dataSource = sql.getDataSource(datasource);
+            Connection con = dataSource.getConnection();
+            con.close();
             return true;
         } catch (Exception e) {
             return false;
