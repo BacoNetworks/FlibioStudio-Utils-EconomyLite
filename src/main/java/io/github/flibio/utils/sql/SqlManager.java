@@ -80,9 +80,9 @@ public class SqlManager {
             Connection con = dataSource.getConnection();
             try {
                 PreparedStatement ps = con.prepareStatement("SELECT 1");
-                ps.closeOnCompletion();
                 ps.executeQuery();
             } finally {
+                System.out.println("Closing...");
                 con.close();
             }
             return true;
@@ -105,12 +105,12 @@ public class SqlManager {
             Connection con = dataSource.getConnection();
             try {
                 PreparedStatement ps = con.prepareStatement(sql);
-                ps.closeOnCompletion();
                 for (int i = 0; i < vars.length; i++) {
                     ps.setObject(i + 1, vars[i]);
                 }
                 return (ps.executeUpdate() > 0);
             } finally {
+                System.out.println("Closing...");
                 con.close();
             }
         } catch (Exception e) {
