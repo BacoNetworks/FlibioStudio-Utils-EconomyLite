@@ -174,6 +174,7 @@ public class SqlManager {
             }
             return Optional.empty();
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage());
             return Optional.empty();
         }
@@ -203,6 +204,7 @@ public class SqlManager {
                 rs.close();
             }
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage());
         }
         return list;
@@ -227,6 +229,7 @@ public class SqlManager {
             }
             return false;
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage());
             return false;
         }
