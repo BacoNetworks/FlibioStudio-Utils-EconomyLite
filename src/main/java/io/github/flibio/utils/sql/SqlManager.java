@@ -122,34 +122,6 @@ public class SqlManager {
     }
 
     /**
-     * Runs a query on the database. Recommended to run in an async thread.
-     *
-     * @param sql The sql to run.
-     * @param vars The variables to replace in the sql. Replaced in
-     *        chronological order.
-     * @return The ResultSet retrieved from the query.
-     */
-    public Optional<ResultSet> executeQuery(String sql, Object... vars) {
-        try {
-            Connection con = dataSource.getConnection();
-            try {
-                PreparedStatement ps = con.prepareStatement(sql);
-                ps.closeOnCompletion();
-                for (int i = 0; i < vars.length; i++) {
-                    ps.setObject(i + 1, vars[i]);
-                }
-                return Optional.of(ps.executeQuery());
-            } finally {
-                con.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.error(e.getMessage());
-            return Optional.empty();
-        }
-    }
-
-    /**
      * Queries the database and retrieves a column's data.
      *
      * @param columnName The column to retrieve that data of.
@@ -162,17 +134,24 @@ public class SqlManager {
     @SuppressWarnings("unchecked")
     public <T> Optional<T> queryType(String columnName, Class<T> type, String sql, Object... vars) {
         try {
-            Optional<ResultSet> rOpt = executeQuery(sql, vars);
-            if (rOpt.isPresent()) {
-                ResultSet rs = rOpt.get();
+            Connection con = dataSource.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(sql);
+                ps.closeOnCompletion();
+                for (int i = 0; i < vars.length; i++) {
+                    ps.setObject(i + 1, vars[i]);
+                }
+                ResultSet rs = ps.executeQuery();
                 rs.next();
                 Object raw = rs.getObject(columnName);
                 rs.close();
                 if (raw.getClass().equals(type)) {
                     return Optional.of((T) raw);
                 }
+                return Optional.empty();
+            } finally {
+                con.close();
             }
-            return Optional.empty();
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(e.getMessage());
@@ -194,14 +173,23 @@ public class SqlManager {
     public <T> List<T> queryTypeList(String columnName, Class<T> type, String sql, Object... vars) {
         ArrayList<T> list = new ArrayList<>();
         try {
-            Optional<ResultSet> rOpt = executeQuery(sql, vars);
-            if (rOpt.isPresent()) {
-                ResultSet rs = rOpt.get();
+            Connection con = dataSource.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(sql);
+                ps.closeOnCompletion();
+                for (int i = 0; i < vars.length; i++) {
+                    ps.setObject(i + 1, vars[i]);
+                }
+                ResultSet rs = ps.executeQuery();
+
                 while (rs.next()) {
                     Object raw = rs.getObject(columnName);
                     list.add((T) raw);
                 }
                 rs.close();
+
+            } finally {
+                con.close();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -220,14 +208,21 @@ public class SqlManager {
      */
     public boolean queryExists(String sql, Object... vars) {
         try {
-            Optional<ResultSet> rOpt = executeQuery(sql, vars);
-            if (rOpt.isPresent()) {
-                ResultSet rs = rOpt.get();
+            Connection con = dataSource.getConnection();
+            try {
+                PreparedStatement ps = con.prepareStatement(sql);
+                ps.closeOnCompletion();
+                for (int i = 0; i < vars.length; i++) {
+                    ps.setObject(i + 1, vars[i]);
+                }
+                ResultSet rs = ps.executeQuery();
+
                 boolean exists = rs.next();
                 rs.close();
                 return exists;
+            } finally {
+                con.close();
             }
-            return false;
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(e.getMessage());
