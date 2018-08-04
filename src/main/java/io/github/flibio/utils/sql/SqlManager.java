@@ -82,7 +82,6 @@ public class SqlManager {
                 PreparedStatement ps = con.prepareStatement("SELECT 1");
                 ps.executeQuery();
             } finally {
-                System.out.println("Closing...");
                 con.close();
             }
             return true;
@@ -120,7 +119,6 @@ public class SqlManager {
                 }
                 return (ps.executeUpdate() > 0);
             } finally {
-                System.out.println("Closing...");
                 con.close();
             }
         } catch (Exception e) {
