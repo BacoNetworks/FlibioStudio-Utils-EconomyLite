@@ -92,6 +92,15 @@ public class SqlManager {
     }
 
     /**
+     * Returns the datasource for custom queries. Make sure the datasource is initialized first.
+     *
+     * @return The datasource.
+     */
+    public DataSource getDataSource() {
+        return dataSource;
+    }
+
+    /**
      * Executes an update to the database. Recommended to run in an async
      * thread.
      *
