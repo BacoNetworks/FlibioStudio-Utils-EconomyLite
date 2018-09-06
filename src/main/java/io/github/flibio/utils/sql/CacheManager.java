@@ -1,3 +1,7 @@
+/*
+ * This file is part of Utils, licensed under the MIT License (MIT). See the LICENSE file at the root of this project for more information.
+ */
+
 package io.github.flibio.utils.sql;
 
 import com.google.common.cache.Cache;
